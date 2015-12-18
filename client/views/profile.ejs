@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Techies Admin</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/animate.min.css" type="text/css" />
+    <link href="../css/metisMenu.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/angular-toastr.min.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link href="../css/sb-admin-2.css" rel="stylesheet">
+
+</head>
+
+<body id="controller" ng-app="main" ng-controller="MainController">
+
+    <!-- NavBar Top -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">Techies Admin</a>
+        </div>
+        <!-- /.navbar-header -->
+
+        <ul class="nav navbar-top-links navbar-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                    <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-user">
+                    <li><a href="" ng-click="swapView('profile')"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                    </li>
+                    <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li><a href="/auth/logout"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <!-- /#NavBar Top -->
+
+
+    <div id="wrapper">
+        <!-- SideBar -->
+        <div class="navbar-default sidebar" role="navigation">
+            <div class="sidebar-nav navbar-collapse">
+
+                <div class="logo-profile">
+                    <!-- SIDEBAR USERPIC -->
+                    <div class="profile-userpic">
+                        <img src="../img/logo1.jpg" class="img-responsive" alt="User Icon">
+                    </div>
+                    <!-- END SIDEBAR USERPIC -->
+                    <!-- SIDEBAR USER TITLE -->
+                    <div class="profile-usertitle">
+                        <div class="profile-usertitle-name">
+                            {{username}}
+                        </div>
+                        <div class="profile-usertitle-job">
+                            Developer
+                        </div>
+                    </div>
+                    <!-- END SIDEBAR USER TITLE -->
+                    <!-- SIDEBAR BUTTONS -->
+
+                    <div class="profile-userbuttons">
+                        <button type="button" ng-click="swapView('profile')" class="btn btn-success btn-sm">Profile</button>
+                        <button type="button" class="btn btn-danger btn-sm" ng-click="logout()">Logout</button>
+                    </div>
+                    <!-- END SIDEBAR BUTTONS -->
+                </div>
+
+                <ul class="nav" id="side-menu">
+                    <li>
+                        <a href="" ng-click="swapView('ideaMain')"><i class="fa fa-dashboard fa-fw"></i> Ideas Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="" ng-click="swapView('underDev')"><i class="fa fa-bar-chart-o fa-fw"></i> Charts</a>
+                    </li>
+                    <li>
+                        <a href="" ng-click="swapView('underDev')"><i class="fa fa-edit fa-fw"></i> Forms</a>
+                    </li>
+                    <li>
+                        <a href="" ng-click="swapView('underDev')"><i class="fa fa-wrench fa-fw"></i> UI Elements<span class="fa arrow"></span></a>
+                        <ul class="nav nav-second-level">
+                            <li>
+                                <a href="">Grid</a>
+                            </li>
+                            <li>
+                                <a href="">Login Page</a>
+                            </li>
+                        </ul>
+                        <!-- /.nav-second-level -->
+                    </li>
+                </ul>
+            </div>
+            <!-- /.sidebar-collapse -->
+        </div>
+        <!-- /#sidebar -->
+
+        <div id="page-wrapper">
+
+
+
+            <div class="row" ng-if="sectionName==='ideaMain'">
+                <div ng-if="(userIdeas).length == 0" class="text-center">
+                    <div class="main-greeting">Hello</div>
+                    <div class="main-name">{{username}}</div>
+                    <div class="main-container btn btn-success" ng-click="create()">Create a new idea</div>
+                </div>
+                <br>
+                <div ng-if="(userIdeas).length > 0" class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="btn disabled"><b>Your ideas</b></div>
+                        <button class="btn btn-danger" ng-click="create()">Create New Idea</button>
+                        <button class="btn tag pull-right color color-travel" ng-click="myFilter.category = ''">Show All Ideas</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Tags</th>
+                                <th>Likes</th>
+                                <th>Dislikes</th>
+                                <th>Date created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="idea in userIdeas | filter:myFilter ">
+                                <td class="col-md-1">{{idea.title}}</td>
+                                <td class="col-md-2">{{idea.description}}</td>
+                                <td class="col-md-1">
+                                    <button class="btn tag" ng-click="myFilter.category = idea.category">{{idea.category}}</button>
+                                </td>
+                                <td class="col-md-2">
+                                    <div class="tag category blue pull-left" ng-repeat="tag in idea.tags track by $index">{{tag}}</div>
+                                </td>
+                                <td class="col-md-1">{{idea.rating.likes}}</td>
+                                <td class="col-md-1">{{idea.rating.dislikes}}</td>
+                                <td class="col-md-1">{{idea.parsedDate}}</td>
+                                <td class="pull-right">
+                                    <button class="btn btn-primary" ng-click="viewIdea(idea._id, idea.title, idea.description, idea.category, idea.tags, idea.rating.likes, idea.rating.dislikes,'notshow')">View</button>
+                                </td>
+                                <td class="pull-right">
+                                    <button class="btn btn-danger" ng-click="remove(idea._id, idea.title, idea.description, idea.category, idea.tags)">Remove</button>
+                                </td>
+                                <td class="pull-right">
+                                    <button class="btn btn-warning" ng-click="edit(idea._id, idea.title, idea.description, idea.category, idea.tags, idea.rating.likes, idea.rating.dislikes)">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="btn disabled"><b>Other ideas</b></div>
+                        <button ng-if="(categoryPreference).indexOf('Travel') > -1" class="btn tag pull-right color color-travel" ng-click="toggle('Travel')">Travel</button>
+                        <button ng-if="(categoryPreference).indexOf('Travel') == -1" class="btn tag pull-right blank" ng-click="toggle('Travel')">Travel</button>
+                        <button ng-if="(categoryPreference).indexOf('Finance') > -1" class="btn tag pull-right color color-finance" ng-click="toggle('Finance')">Finance</button>
+                        <button ng-if="(categoryPreference).indexOf('Finance') == -1" class="btn tag pull-right blank" ng-click="toggle('Finance')">Finance</button>
+                        <button ng-if="(categoryPreference).indexOf('Education') > -1" class="btn tag pull-right color color-education" ng-click="toggle('Education')">Education</button>
+                        <button ng-if="(categoryPreference).indexOf('Education') == -1" class="btn tag pull-right blank" ng-click="toggle('Education')">Education</button>
+                        <button ng-if="(categoryPreference).indexOf('Technology') > -1" class="btn tag pull-right color color-technology" ng-click="toggle('Technology')">Technology</button>
+                        <button ng-if="(categoryPreference).indexOf('Technology') == -1" class="btn tag pull-right blank" ng-click="toggle('Technology')">Technology</button>
+                        <button ng-if="(categoryPreference).indexOf('Health') > -1" class="btn tag pull-right color color-health" ng-click="toggle('Health')">Health</button>
+                        <button ng-if="(categoryPreference).indexOf('Health') == -1" class="btn tag pull-right blank" ng-click="toggle('Health')">Health</button>
+                        <div class="btn disabled pull-right">Displaying:</div>
+                        <form class="form-inline">
+                            <div class="form-group">
+                                <input type="text" class="form-control" ng-model="filterTags" placeholder="Enter tags">
+                                <button class="btn btn-default" ng-click="filter()">Filter</button>
+                                <button class="btn btn-default" ng-click="clearFilter()">Clear filter</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div ng-if="(otherIdeas).length == 0" class="container text-center">
+                        <div>Ideas from other users will show up here.
+                            <br>Currently there are no ideas that match your preferences</div>
+                    </div>
+                    <table ng-if="(otherIdeas).length > 0" class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                                <th>Tags</th>
+                                <th class="btn" ng-click="sort('likes')"><b>Likes</b><span class="sortorder" ng-show="predicate === 'likes'" ng-class="{reverse:reverse}"></span></th>
+                                <th>Dislikes</th>
+                                <th class="btn" ng-click="sort('parsedDate')"><b>Date created</b><span class="sortorder" ng-show="predicate === 'parsedDate'" ng-class="{reverse:reverse}"></span></th>
+                                <th>Author</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="idea in otherIdeas | orderBy:predicate:reverse">
+                                <td class="col-md-1">{{idea.title}}</td>
+                                <td class="col-md-2">{{idea.description}}</td>
+                                <td class="col-md-1">{{idea.category}}</td>
+                                <td class="col-md-2">
+                                    <div class="tag category blue pull-left" ng-repeat="tag in idea.tags track by $index" disabled>{{tag}}</div>
+                                </td>
+                                <td class="col-md-1">{{idea.rating.likes}}</td>
+                                <td class="col-md-1">{{idea.rating.dislikes}}</td>
+                                <td class="col-md-1">{{idea.parsedDate}}</td>
+                                <td class="col-md-1">{{idea.author.name}}</td>
+                                <td class="pull-right" ng-if="(ratings.dislikes).indexOf(idea._id) == -1">
+                                    <button class="btn btn-default" ng-click="dislike(idea._id, idea.title, idea.description, idea.category, idea.tags)">Dislike</button>
+                                </td>
+                                <td class="pull-right" ng-if="(ratings.dislikes).indexOf(idea._id) > -1">
+                                    <button class="btn btn-danger" ng-click="dislike(idea._id, idea.title, idea.description, idea.category, idea.tags)">Dislike</button>
+                                </td>
+                                <td class="pull-right" ng-if="(ratings.likes).indexOf(idea._id) == -1">
+                                    <button class="btn btn-default" ng-click="like(idea._id, idea.title, idea.description, idea.category, idea.tags)">Like</button>
+                                </td>
+                                <td class="pull-right" ng-if="(ratings.likes).indexOf(idea._id) > -1">
+                                    <button class="btn btn-success" ng-click="like(idea._id, idea.title, idea.description, idea.category, idea.tags)">Like</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <form class="form-inline">
+                    <div class="form-group">
+                        <span class="category">Retrieve the top </span>
+                        <input type="text" class="form-control" ng-model="posInt" placeholder="Enter a positive integer">
+                        <span class="category"> from </span>
+                        <input type="date" class="form-control" ng-model="sdate" placeholder="Starting date">
+                        <span class="category"> to </span>
+                        <input type="date" class="form-control" ng-model="edate" placeholder="Ending date">
+                        <button class="btn btn-default" ng-click="retrieve()">Go</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row" ng-if="sectionName==='profile'">
+                <br>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xs-offset-0 col-sm-offset-0 col-md-offset-3 col-lg-offset-3 toppad">
+                        <div class="panel panel-info">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">{{techiUser.name}}</h3>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-3 col-lg-3 " align="center"> <img alt="User Pic" src="../img/userlogo2.jpg" class="img-circle img-responsive"> </div>
+
+                                    <div class=" col-md-9 col-lg-9 ">
+                                        <table class="table table-user-information">
+                                            <tbody>
+                                                <tr>
+                                                    <td>Username:</td>
+                                                    <td>{{techiUser.name}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Signup Email:</td>
+                                                    <td>{{techiUser.local.username}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Department:</td>
+                                                    <td>{{techiUser.department}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="fa fa-key"></i> API Token:</td>
+                                                    <td>{{techiUser._id}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Registration Date:</td>
+                                                    <td>{{techiUser.date | date:"MM/dd/yyyy 'at' h:mma"}}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Password:</td>
+                                                    <td>{{techiUser.local.password | limitTo: 20}} Encoded</td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                        <a href="" class="btn btn-primary">Link Google Account</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                                <a data-original-title="Broadcast Message" data-toggle="tooltip" type="button" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-envelope"></i></a>
+                                <span class="pull-right">
+                                        <a href="" data-original-title="Edit this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-warning"><i class="glyphicon glyphicon-edit"></i></a>
+                                        <a data-original-title="Remove this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-danger"><i class="glyphicon glyphicon-remove"></i></a>
+                                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" ng-if="sectionName==='underDev'">
+                <carousel interval="myInterval">
+                    <slide ng-repeat="slide in slides" active="slide.active">
+                        <img ng-src="{{slide.image}}" style="margin:auto; width:100%">
+                    </slide>
+                </carousel>
+            </div>
+            <!-- /#page-wrapper -->
+        </div>
+        <!-- / -->
+
+        <script src="../js/libs/jquery.min.js"></script>
+        <script src="../js/libs/bootstrap.min.js"></script>
+        <script src="../js/libs/metisMenu.min.js"></script>
+        <script src="../js/libs/sb-admin-2.js"></script>
+        <script src="../js/libs/angular.min.js"></script>
+        <script src="../js/libs/angular-animate.min.js"></script>
+        <script src="../js/libs/ui-bootstrap.min.js"></script>
+        <script src="../js/libs/toastr.min.js"></script>
+        <script src="../js/libs/angular-toastr.tpls.min.js"></script>
+
+        <script src="../js/main-controller.js"></script>
+    
+	<script type="text/javascript">  
+        window.user = <%- JSON.stringify(user) %>;
+    </script>
+
+</body>
+
+</html>

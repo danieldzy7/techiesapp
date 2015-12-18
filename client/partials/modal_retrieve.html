@@ -1,0 +1,33 @@
+<div class="modal-content">
+	<div class="modal-header">
+		<b>Results</b>
+	</div>
+	<div class="modal-body">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Title</th>
+					<th>Description</th>
+					<th>Category</th>
+					<th>Tags</th>
+					<th>Likes</th>
+					<th>Dislikes</th>
+					<th>Date created</th>
+					<th>Author</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="idea in response track by $index">
+					<td class="col-md-1">{{idea.title}}</td>
+					<td class="col-md-2">{{idea.description}}</td>
+					<td class="col-md-1">{{idea.category}}</td>
+					<td class="col-md-2"><div class="tag category blue pull-left" ng-repeat="tag in idea.tags track by $index">{{tag}}</div></td>
+					<td class="col-md-1">{{idea.rating.likes}}</td>
+					<td class="col-md-1">{{idea.rating.dislikes}}</td>
+					<td class="col-md-1">{{idea.parsedDate}}</td>
+					<td class="col-md-1">{{idea.author.name}}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

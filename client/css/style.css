@@ -1,0 +1,145 @@
+#chartdiv {
+	width		: 100%;
+	height		: 500px;
+	font-size	: 11px;
+}
+
+.container {
+	margin-left: 5%;
+	margin-right: 5%;
+	width: auto;
+}
+
+.title {
+	font-size: 3.5em;
+}
+
+.nav .btn {
+	position: relative;
+	transform: translateY(25%);
+	margin-right: 5px;
+}
+
+.tab-color {
+	background-color: #aaa;
+	border-color: #d43f3a;
+	color: #fff;
+}
+
+.blue {
+	background-color: #6CC0E5;
+	border-color: #61ADCE;
+	color: #fff;
+}
+
+.category {
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.42857143;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	border: 1px solid transparent;
+	border-radius: 4px;
+}
+
+.tab {
+	margin-bottom: 34px;
+}
+
+.border {
+	margin-top: 5%;
+	border-top: 1px solid #6CC0E5;
+	padding-top: 10px;
+}
+
+.tag {
+	margin: 1px;
+}
+
+.panel-default {
+  border: 2px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+
+.panel-default>.panel-heading {
+	border-color: #aaa;
+}
+
+.panel-info > .panel-heading {
+	color: #CCE0EB;
+	background-color: #006699;
+}
+
+table, table>thead, table>thead>tr, table>thead>tr>th, .table, .table>thead, .table>thead>tr, .table>thead>tr>th {
+	border: 0;
+}
+
+table>tbody, table>tbody>tr, table>tbody>tr>td, .table>tbody, .table>tbody>tr, .table>tbody>tr>td {
+	border: 0;
+}
+
+table>tbody>tr>td, .table>tbody>tr {
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+}
+
+.table>tbody>tr>td {
+	border: 0;
+}
+
+.color, .color:hover, .color:focus {
+	color: #fff;
+}
+
+.blank {
+	color: #bbb;
+}
+
+.color-health {
+	background-color: #337ab7;
+}
+
+.color-technology {
+	background-color: #5cb85c;
+}
+
+.color-education {
+	background-color: #5bc0de;
+}
+
+.color-finance {
+	background-color: #f0ad4e;
+}
+
+.color-travel {
+	background-color: #d9534f;
+}
+
+.main-greeting {
+	font-size: 2.5em;
+}
+
+.main-name {
+	font-size: 4em;
+}
+
+.main-container {
+	padding: 0 30px 0 30px;
+	font-size: 3em;
+	margin-bottom: 10%;
+}
+
+
+
+
+.sortorder:after {
+  content: '\25b2';
+}
+.sortorder.reverse:after {
+  content: '\25bc';
+}
+

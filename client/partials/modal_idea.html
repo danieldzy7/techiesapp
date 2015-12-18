@@ -1,0 +1,50 @@
+<div class="modal-content">
+	<div class="modal-header">
+		<button type="button" class="close" ng-click="cancel()" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h4 class="modal-title">{{pagetext}}: <b>{{title}}</b></h4>
+	</div>
+	<div class="modal-body">
+		<form class="form-horizontal" role="form">
+			<div class="form-group">
+				<label for="title" class="col-sm-2 control-label">Title</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="title" placeholder="Title" value={{title}} ng-model="title">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="description" class="col-sm-2 control-label">Description</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="description" placeholder="Enter a description ..." value={{description}} ng-model="description">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="tags" class="col-sm-2 control-label">Tags</label>
+				<div class="col-sm-10">
+					<input type="text" class="form-control" id="tags" placeholder="Enter tags (i.e foo;hello world;bar)" value={{tags}} ng-model="tags">
+				</div>
+			</div>
+			<div class="alert alert-info form">
+						<label class="control-label">Select the category for your idea</label>
+						<div class="radio">
+							<label><input type="radio" value="Health" ng-model="category">Health</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" value="Technology" ng-model="category">Technology</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" value="Education" ng-model="category">Education</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" value="Finance" ng-model="category">Finance</label>
+						</div>
+						<div class="radio">
+							<label><input type="radio" value="Travel" ng-model="category">Travel</label>
+						</div>
+				</div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button ng-hide="notShow=== 'notshow'" type="button" ng-click="submit()" class="btn btn-primary" data-dismiss="modal">OK</button>
+		<button type="button" ng-click="cancel()" class="btn">Cancel</button>
+	</div>
+</div>
