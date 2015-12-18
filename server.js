@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var port = process.env.PORT;
+var port = process.env.PORT || 3000;
 
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
@@ -12,8 +12,6 @@ var methodOverride = require('method-override');
 var flash = require('connect-flash');
 var MongoStore = require('connect-mongo')(session);
 var path = require('path');
-
-
 
 var configDB = require('./server/config/database.js');
 mongoose.connect(configDB.url);
