@@ -1,8 +1,7 @@
 {
-  "name": "Techies Webapp",
+  "name": "techies",
   "version": "1.0.0",
   "description": "my app!",
-  "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -10,8 +9,6 @@
   "author": "Ryan",
   "license": "ISC",
   "dependencies": {
-    "amcharts3": "amcharts/amcharts3",
-    "ammap3": "amcharts/ammap3",
     "bcrypt": "^0.8.5",
     "body-parser": "^1.14.1",
     "connect-flash": "^0.1.1",
