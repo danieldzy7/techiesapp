@@ -69,7 +69,7 @@
                     <!-- SIDEBAR USER TITLE -->
                     <div class="profile-usertitle">
                         <div class="profile-usertitle-name">
-                            {{username}}
+                            {{displayName}}
                         </div>
                         <div class="profile-usertitle-job">
                             Developer
@@ -120,7 +120,7 @@
             <div class="row" ng-if="sectionName==='ideaMain'">
                 <div ng-if="(userIdeas).length == 0" class="text-center">
                     <div class="main-greeting">Hello</div>
-                    <div class="main-name">{{username}}</div>
+                    <div class="main-name">{{displayName}}</div>
                     <div class="main-container btn btn-success" ng-click="create()">Create a new idea</div>
                 </div>
                 <br>

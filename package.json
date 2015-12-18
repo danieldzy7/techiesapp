@@ -2,11 +2,11 @@
   "name": "Techies",
   "version": "1.0.0",
   "description": "my app!",
+  "author": "Ryan",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "author": "Ryan",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^0.8.5",

@@ -7,7 +7,8 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.techiUser = $window.user;
 		$scope.filterTags = "";
 		$scope.token = currentUser._id;
-		$scope.username = currentUser.name;
+		$scope.displayName=currentUser.name;
+		$scope.username = currentUser.local.username;
 		$scope.categoryPreference = currentUser.categoryPreference;
 		$scope.sortingPreferenceOrder = currentUser.sortingPreference.order;
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
