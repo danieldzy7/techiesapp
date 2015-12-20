@@ -1,7 +1,8 @@
-var app = angular.module('main', ['ui.bootstrap', 'ngAnimate', 'toastr']);
-app.controller('MainController', function($scope, $modal, $http, $window, toastr) {
+var app = angular.module('main', ['ui.bootstrap', 'ngAnimate', 'toastr', 'btford.socket-io']);
+app.controller('MainController', function($scope, $modal, $http, $window, toastr, Socket) {
 
 	var refresh = function() {
+		$scope.currentDate = new Date();
 		$scope.sectionName = 'ideaMain';
 		var currentUser = $window.user;
 		$scope.techiUser = $window.user;
@@ -403,7 +404,49 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 	}, {
 		image: "../img/underdev1.jpg"
 	}];
+	
+	
+	
+// --------------------- Chatroom -----------------------------//
+	
+	Socket.connect();
+	
+	$scope.leaveChat= function(){
+        Socket.disconnect(true);
+        $scope.sectionName='ideaMain';
+    }
+    
+    $scope.sendMessage = function(msg){
+        if(msg != null && msg != '')
+            Socket.emit('message', {message: msg})
+        $scope.msg = '';
+    }
+    
+	$scope.chatUsers=[];
+	$scope.messages=[];
 
+	Socket.emit('add-user', {displayName: $scope.displayName})
+	Socket.emit('request-users', {});
+	
+	Socket.on('users', function(data){
+        $scope.chatUsers = data.chatUsers;
+    });
+    
+    Socket.on('message', function(data){
+    	console.log($scope.messages);
+        $scope.messages.push(data);
+    });
+    
+    Socket.on('add-user', function(data){
+        $scope.chatUsers.push(data.displayName);
+        $scope.messages.push({displayName: data.displayName, message: 'has entered the channel'});
+    });
+    
+    Socket.on('remove-user', function(data){
+        $scope.chatUsers.splice($scope.chatUsers.indexOf(data.displayName), 1);
+        $scope.messages.push({displayName: data.displayName, message: 'has left the channel'});
+    });
+	
 });
 
 //----------------------------MainModal Controller-------------------------------------//
@@ -485,3 +528,7 @@ app.config(function(toastrConfig) {
 		timeOut: 2500
 	});
 });
+
+app.factory('Socket', ['socketFactory', function(socketFactory){
+    return socketFactory();
+}])

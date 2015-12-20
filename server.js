@@ -1,5 +1,7 @@
 var express = require('express');
 var app = express();
+var http = require('http').Server(app);
+var io = require("socket.io")(http);
 var port = process.env.PORT || 3000;
 
 var cookieParser = require('cookie-parser');
@@ -20,14 +22,20 @@ require('./server/config/passport')(passport);
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(methodOverride());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({
+	extended: false
+}));
 app.use(bodyParser.json());
 
-app.use(session({secret: 'anystringoftext',
-				 saveUninitialized: true,
-				 resave: true,
-				 store: new MongoStore({ mongooseConnection: mongoose.connection,
-				 							ttl: 2 * 24 * 60 * 60 })}));
+app.use(session({
+	secret: 'ilovewebprogramming',
+	saveUninitialized: true,
+	resave: true,
+	store: new MongoStore({
+		mongooseConnection: mongoose.connection,
+		ttl: 2 * 24 * 60 * 60
+	})
+}));
 
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
@@ -43,12 +51,53 @@ app.set('views', path.resolve(__dirname, 'client', 'views'));
 app.use(express.static(path.resolve(__dirname, 'client')));
 
 
-app.use(function(req, res, next){
-	console.log("" + req.user);
-	console.log("##############################");
+app.use(function(req, res, next) {
 	next();
 });
 
+// Socket.io ChatRoom setup
+var chatUsers = [];
+io.on('connection', function(socket) {
+
+	var displayName = '';
+	console.log('A user has connected............')
+
+	socket.on('request-users', function() {
+		socket.emit('chatUsers', {
+			chatUsers: chatUsers
+		});
+	});
+
+	socket.on('message', function(data) {
+		io.emit('message', {
+			displayName: displayName,
+			message: data.message
+		});
+	})
+	
+	socket.on('add-user', function(data) {
+		if (chatUsers.indexOf(data.displayName) == -1) {
+			io.emit('add-user', {
+				displayName: data.displayName
+			});
+			displayName = data.displayName;
+			chatUsers.push(data.displayName);
+		}
+		else {
+			socket.emit('prompt-username', {
+				message: 'User Already Exists'
+			})
+		}
+	})
+
+	socket.on('disconnect', function() {
+		console.log(displayName + ' has disconnected..............');
+		chatUsers.splice(chatUsers.indexOf(displayName), 1);
+		io.emit('remove-user', {
+			displayName: displayName
+		});
+	})
+});
 
 var api = express.Router();
 require('./server/routes/api.js')(api, passport);
@@ -63,9 +112,5 @@ require('./server/routes/secure.js')(secure, passport);
 app.use('/', secure);
 
 
-app.listen(port);
+http.listen(port);
 console.log('Server running on port: ' + port);
-
-
-
-
