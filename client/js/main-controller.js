@@ -6,7 +6,7 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.sectionName = 'ideaMain';
 		var currentUser = $window.user;
 		$scope.techiUser = $window.user;
-		$scope.filterTags = "";
+		$scope.filterTags = currentUser.filter.join(';');
 		$scope.token = currentUser._id;
 		$scope.displayName=currentUser.name;
 		$scope.username = currentUser.local.username;
@@ -317,10 +317,15 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 			clear: 1,
 			tags: ""
 		}).success(function(response) {
-			refresh();
+			$scope.filterTags = ""
+			$http.get('/api/getOtherIdeas' + '?access_token=' + $scope.token).success(function(response) {
+				$scope.otherIdeas = response;
+			});
+			$http.get('/api/getRatings' + '?access_token=' + $scope.token).success(function(response) {
+				$scope.ratings = response;
+			});
 		});
 	}
-	$scope.clearFilter();
 
 	$scope.filter = function() {
 		if ($scope.filterTags != "") {
@@ -328,7 +333,12 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 				clear: 0,
 				tags: $scope.filterTags
 			}).success(function(response) {
-				refresh();
+				$http.get('/api/getOtherIdeas' + '?access_token=' + $scope.token).success(function(response) {
+					$scope.otherIdeas = response;
+				});
+				$http.get('/api/getRatings' + '?access_token=' + $scope.token).success(function(response) {
+					$scope.ratings = response;
+				});
 			});
 		}
 		else {
@@ -336,15 +346,15 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		}
 	}
 
-	$scope.retrieve = function() {
-		if ($scope.posInt > 0) {
-			$scope.edate.setHours(0);
-			$scope.edate.setMinutes(0);
-			$scope.edate.setSeconds(0);
+	$scope.retrieve = function(posInt,sdate,edate) {
+		if (posInt > 0) {
+			edate.setHours(0);
+			edate.setMinutes(0);
+			edate.setSeconds(0);
 			$http.post('/api/retrieve' + '?access_token=' + $scope.token, {
-				posInt: $scope.posInt,
-				sdate: $scope.sdate,
-				edate: $scope.edate
+				posInt: posInt,
+				sdate: sdate,
+				edate: edate
 			}).success(function(response) {
 				$scope.retrieveModal(response);
 			});

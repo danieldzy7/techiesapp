@@ -170,7 +170,7 @@
                         <div class="btn disabled pull-right">Displaying:</div>
                         <form class="form-inline">
                             <div class="form-group">
-                                <input type="text" class="form-control" ng-model="filterTags" placeholder="Enter tags">
+                                <input type="text" class="form-control" ng-model="$parent.filterTags" placeholder="Enter tags">
                                 <button class="btn btn-default" ng-click="filter()">Filter</button>
                                 <button class="btn btn-default" ng-click="clearFilter()">Clear filter</button>
                             </div>
@@ -230,7 +230,7 @@
                         <input type="date" class="form-control" ng-model="sdate" placeholder="Starting date">
                         <span class="category"> to </span>
                         <input type="date" class="form-control" ng-model="edate" placeholder="Ending date">
-                        <button class="btn btn-default" ng-click="retrieve()">Go</button>
+                        <button class="btn btn-default" ng-click="retrieve(posInt,sdate,edate)">Go</button>
                     </div>
                 </form>
             </div>
@@ -417,6 +417,7 @@
                 </div>
                 <!-- /.panel .chat-panel -->
             </div>
+            
         </div>
         <!-- / -->
 
