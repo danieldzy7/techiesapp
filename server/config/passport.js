@@ -3,7 +3,7 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var BearerStrategy = require('passport-http-bearer').Strategy;
 
-var User            = require('../models/user');
+var User = require('../models/user');
 var configAuth = require('./googleauth');
 
 module.exports = function(passport) {
@@ -28,8 +28,9 @@ module.exports = function(passport) {
 	function(req, email, password, done){
 		process.nextTick(function(){
 			User.findOne({'local.username': email}, function(err, user){
-				if(err)
+				if(err){
 					return done(err);
+				}
 				if(user){
 					return done(null, false, req.flash('signupMessage', 'That email already taken'));
 				} 
@@ -57,8 +58,9 @@ module.exports = function(passport) {
 					user.local.password = user.generateHash(password);
 
 					user.save(function(err){
-						if(err)
+						if(err){
 							throw err;
+						}
 						return done(null, user);
 					})
 				}
@@ -75,12 +77,14 @@ module.exports = function(passport) {
 		function(req, email, password, done){
 			process.nextTick(function(){
 				User.findOne({ 'local.username': email}, function(err, user){
-					if(err)
+					if(err){
 						return done(err);
-					if(!user)
-						return done(null, false, req.flash('loginMessage', 'No User found'));
+					}
+					if(!user){
+						return done(null, false, req.flash('loginMessage', 'No Username Found'));
+					}
 					if(!user.validPassword(password)){
-						return done(null, false, req.flash('loginMessage', 'invalid password'));
+						return done(null, false, req.flash('loginMessage', 'Invalid Password'));
 					}
 					return done(null, user);
 
@@ -124,8 +128,9 @@ module.exports = function(passport) {
 		    				newUser.facebook.email = profile.emails[0].value;
 
 		    				newUser.save(function(err){
-		    					if(err)
+		    					if(err){
 		    						throw err;
+		    					}
 		    					return done(null, newUser);
 		    				})
 		    			}
@@ -141,8 +146,9 @@ module.exports = function(passport) {
 	    			user.facebook.email = profile.emails[0].value;
 
 	    			user.save(function(err){
-	    				if(err)
+	    				if(err){
 	    					throw err
+	    				}
 	    				return done(null, user);
 	    			})
 	    		}
@@ -163,16 +169,18 @@ module.exports = function(passport) {
 
 	    		if(!req.user){
 	    			User.findOne({'google.id': profile.id}, function(err, user){
-		    			if(err)
+		    			if(err){
 		    				return done(err);
+		    			}
 		    			if(user){
 		    				if(!user.google.token){
 		    					user.google.token = accessToken;
 		    					user.google.name = profile.displayName;
 		    					user.google.email = profile.emails[0].value;
 		    					user.save(function(err){
-		    						if(err)
+		    						if(err){
 		    							throw err;
+		    						}
 		    					});
 		    				}
 		    				return done(null, user);
@@ -185,8 +193,9 @@ module.exports = function(passport) {
 		    				newUser.google.email = profile.emails[0].value;
 
 		    				newUser.save(function(err){
-		    					if(err)
+		    					if(err){
 		    						throw err;
+		    					}
 		    					return done(null, newUser);
 		    				})
 		    			}
@@ -199,8 +208,9 @@ module.exports = function(passport) {
 					user.google.email = profile.emails[0].value;
 
 					user.save(function(err){
-						if(err)
+						if(err){
 							throw err;
+						}
 						return done(null, user);
 					});
 	    		}
@@ -213,8 +223,9 @@ module.exports = function(passport) {
 	passport.use(new BearerStrategy({},
 		function(token, done){
 			User.findOne({ _id: token }, function(err, user){
-				if(!user)
+				if(!user){
 					return done(null, false);
+				}
 				return done(null, user);
 			});
 		}));
