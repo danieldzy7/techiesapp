@@ -116,8 +116,8 @@ module.exports = function(passport) {
 							kind: 'facebook',
 							accessToken: accessToken
 						});
-						user.name = user.profile.name || profile.displayName;
-						user.local.username = profile.displayName;
+						user.name = profile.displayName;
+						user.local.username = profile.id;
 						user.profile.name = user.profile.name || profile.displayName;
 						user.profile.gender = user.profile.gender || profile._json.gender;
 						user.profile.picture = user.profile.picture || 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
@@ -155,7 +155,7 @@ module.exports = function(passport) {
 						});
 						
 						user.name = profile.displayName;
-						user.local.username = profile.displayName;
+						user.local.username = profile.id;
 						user.profile.name = profile.displayName;
 						user.profile.gender = profile._json.gender;
 						user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
@@ -190,8 +190,9 @@ module.exports = function(passport) {
 							kind: 'google',
 							accessToken: accessToken
 						});
-						user.local.username = user.profile.name || profile.displayName;
-						user.name = user.profile.name || profile.displayName;
+						
+						user.name = profile.displayName;
+						user.local.username = profile.id;
 						user.profile.name = user.profile.name || profile.displayName;
 						user.profile.gender = user.profile.gender || profile._json.gender;
 						user.profile.picture = user.profile.picture || profile._json.image.url;
@@ -227,6 +228,9 @@ module.exports = function(passport) {
 							kind: 'google',
 							accessToken: accessToken
 						});
+						
+						user.name = profile.displayName;
+						user.local.username = profile.id;
 						user.profile.name = profile.displayName;
 						user.profile.gender = profile._json.gender;
 						user.profile.picture = profile._json.image.url;

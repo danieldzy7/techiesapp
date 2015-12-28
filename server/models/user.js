@@ -68,6 +68,7 @@ var userSchema = new mongoose.Schema({
 	},
 	department: {
 		type: String,
+		default: 'Geek'
 	},
 
 	facebook: String,
@@ -99,7 +100,6 @@ var userSchema = new mongoose.Schema({
 
 	resetPasswordToken: String,
 	resetPasswordExpires: Date
-
 
 }, {
 	versionKey: false
