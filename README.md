@@ -1,6 +1,6 @@
 Project Description:
 
-Name: Techies (MEAN Stack Web Application)
+Name: Techies  (MEAN Stack Web Application)
             --Created by Ryan D
             --Full-Stack JavaScript Using MongoDB, Express, AngularJS, and Node.js. 
 

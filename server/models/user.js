@@ -12,6 +12,7 @@ var userSchema = new mongoose.Schema({
 
 	name: {
 		type: String,
+		default: 'Techie'
 
 	},
 	local: {
@@ -68,20 +69,49 @@ var userSchema = new mongoose.Schema({
 	},
 	department: {
 		type: String,
-	}
-	
-	
+	},
+
+	facebook: String,
+	google: String,
+	tokens: Array,
+
+	profile: {
+		name: {
+			type: String,
+			default: ''
+		},
+		gender: {
+			type: String,
+			default: ''
+		},
+		location: {
+			type: String,
+			default: ''
+		},
+		website: {
+			type: String,
+			default: ''
+		},
+		picture: {
+			type: String,
+			default: ''
+		}
+	},
+
+	resetPasswordToken: String,
+	resetPasswordExpires: Date
+
+
 }, {
 	versionKey: false
 });
 
-userSchema.methods.generateHash = function(password){
+userSchema.methods.generateHash = function(password) {
 	return bcrypt.hashSync(password, bcrypt.genSaltSync(9));
 }
 
-userSchema.methods.validPassword = function(password){
+userSchema.methods.validPassword = function(password) {
 	return bcrypt.compareSync(password, this.local.password);
 }
 
-module.exports = mongoose.model('User', userSchema);	
-
+module.exports = mongoose.model('User', userSchema);
