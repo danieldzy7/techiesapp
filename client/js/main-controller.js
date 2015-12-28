@@ -13,13 +13,13 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.categoryPreference = currentUser.categoryPreference;
 		$scope.sortingPreferenceOrder = currentUser.sortingPreference.order;
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
-		
+
 		if(!currentUser.profile.picture){
-			console.log(currentUser.profile.picture);
-			console.log('111111111222221111111s');
-			$scope.logoSrc="../img/userlogo2.jpg";}
+			$scope.logoSrc="../img/logo1.jpg";
+		}
 		else{
-			$scope.logoSrc=currentUser.profile.picture;
+			changesize=currentUser.profile.picture;
+			$scope.logoSrc=changesize.substr(0,changesize.indexOf('?sz=')) + '?sz=175';
 		}
 
 		$http.get('/api/getUserIdeas' + '?access_token=' + $scope.token, {
@@ -423,8 +423,9 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		image: "../img/underdev1.jpg"
 	}];
 	
-	
-	
+	$scope.notYet = function() {
+		toastr.error('LOL I just PUT a button there :P  Underdev');
+	};
 // --------------------- Chatroom -----------------------------//
 	
 	Socket.connect();

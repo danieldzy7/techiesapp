@@ -63,7 +63,7 @@
                 <div class="logo-profile">
                     <!-- SIDEBAR USERPIC -->
                     <div class="profile-userpic">
-                        <img src="../img/logo1.jpg" class="img-responsive" alt="User Icon">
+                        <img ng-src="{{logoSrc}}" class="img-responsive" alt="User Icon">
                     </div>
                     <!-- END SIDEBAR USERPIC -->
                     <!-- SIDEBAR USER TITLE -->
@@ -255,7 +255,7 @@
                                                     <td>{{techiUser.name}}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Signup Email:</td>
+                                                    <td>Signup ID:</td>
                                                     <td>{{techiUser.local.username}}</td>
                                                 </tr>
                                                 <tr>
@@ -272,20 +272,20 @@
                                                 </tr>
                                                 <tr>
                                                     <td>Password:</td>
-                                                    <td>{{techiUser.local.password | limitTo: 20}} Encoded</td>
+                                                    <td>{{techiUser.local.password? techiUser.local.password: 'Google Auth User' | limitTo: 20}}</td>
                                                 </tr>
 
                                             </tbody>
                                         </table>
-                                        <a href="" class="btn btn-primary">Link Google Account</a>
+                                        <a href="" ng-click="notYet()" class="btn btn-primary">Link Google Account</a>
                                     </div>
                                 </div>
                             </div>
                             <div class="panel-footer">
-                                <a data-original-title="Broadcast Message" data-toggle="tooltip" type="button" class="btn btn-sm btn-primary"><i class="glyphicon glyphicon-envelope"></i></a>
+                                <a data-original-title="Broadcast Message" data-toggle="tooltip" type="button" class="btn btn-sm btn-primary" ng-click="notYet()"><i class="glyphicon glyphicon-envelope"></i></a>
                                 <span class="pull-right">
-                                        <a href="" data-original-title="Edit this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-warning"><i class="glyphicon glyphicon-edit"></i></a>
-                                        <a data-original-title="Remove this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-danger"><i class="glyphicon glyphicon-remove"></i></a>
+                                        <a href="" data-original-title="Edit this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-warning" ng-click="notYet()"><i class="glyphicon glyphicon-edit"></i></a>
+                                        <a data-original-title="Remove this user" data-toggle="tooltip" type="button" class="btn btn-sm btn-danger" ng-click="swapView('ideaMain')"><i class="glyphicon glyphicon-remove"></i></a>
                                     </span>
                             </div>
                         </div>
