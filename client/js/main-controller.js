@@ -13,6 +13,12 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.categoryPreference = currentUser.categoryPreference;
 		$scope.sortingPreferenceOrder = currentUser.sortingPreference.order;
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
+		
+		if(!currentUser.profile.picture){
+			$scope.logoSrc="../img/userlogo2.jpg";}
+		else{
+			$scope.logoSrc=currentUser.profile.picture;
+		}
 
 		$http.get('/api/getUserIdeas' + '?access_token=' + $scope.token, {
 			username: $scope.username
