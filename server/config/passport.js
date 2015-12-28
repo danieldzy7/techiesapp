@@ -116,8 +116,8 @@ module.exports = function(passport) {
 							kind: 'facebook',
 							accessToken: accessToken
 						});
-						
 						user.name = user.profile.name || profile.displayName;
+						user.local.username = profile.displayName;
 						user.profile.name = user.profile.name || profile.displayName;
 						user.profile.gender = user.profile.gender || profile._json.gender;
 						user.profile.picture = user.profile.picture || 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
@@ -154,8 +154,8 @@ module.exports = function(passport) {
 							accessToken: accessToken
 						});
 						
-						user.name = user.profile.name || profile.displayName;
-						user.local.username = user.profile.name || profile.displayName;
+						user.name = profile.displayName;
+						user.local.username = profile.displayName;
 						user.profile.name = profile.displayName;
 						user.profile.gender = profile._json.gender;
 						user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
