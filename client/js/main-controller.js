@@ -15,6 +15,8 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
 		
 		if(!currentUser.profile.picture){
+			console.log(currentUser.profile.picture);
+			console.log('111111111222221111111s');
 			$scope.logoSrc="../img/userlogo2.jpg";}
 		else{
 			$scope.logoSrc=currentUser.profile.picture;
