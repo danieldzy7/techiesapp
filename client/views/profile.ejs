@@ -112,15 +112,15 @@
                 <div ng-if="(userIdeas).length > 0" class="panel panel-default">
                     <div class="panel-heading">
                         <div class="btn disabled"><b>MY ideas</b></div>
-                        <button class="btn btn-danger" ng-click="create()">Create New Idea</button>
+                        <button class="btn btn-danger" ng-click=" myFilter.category=''; create()">Create New Idea</button>
                         <button class="btn tag pull-right color color-travel" ng-click="myFilter.category = ''">Show All Ideas</button>
                     </div>
-                    <table class="table">
+                    <table class="table" ng-init="selectedCategory=''">
                         <thead>
                             <tr>
                                 <th>Title</th>
                                 <th>Description</th>
-                                <th>Category</th>
+                                <th>{{selectedCategory}}Category</th>
                                 <th>Tags</th>
                                 <th>Likes</th>
                                 <th>Dislikes</th>
@@ -128,11 +128,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="idea in userIdeas | filter:myFilter ">
+                            <tr ng-repeat="idea in userIdeas | filter:myFilter">
                                 <td class="col-md-1">{{idea.title}}</td>
                                 <td class="col-md-2">{{idea.description}}</td>
                                 <td class="col-md-1">
-                                    <button class="btn tag" ng-click="myFilter.category = idea.category">{{idea.category}}</button>
+                                    <button class="btn tag" ng-class="{'active':selectedCategory === 'Filtered '}" ng-click="myFilter.category = idea.category; $parent.selectedCategory='Filtered ';">{{idea.category}}</button>
                                 </td>
                                 <td class="col-md-2">
                                     <div class="tag category blue pull-left" ng-repeat="tag in idea.tags track by $index">{{tag}}</div>
@@ -153,6 +153,7 @@
                         </tbody>
                     </table>
                 </div>
+
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <div class="btn disabled"><b> Ideas from Other users</b></div>
@@ -196,7 +197,9 @@
                             <tr ng-repeat="idea in otherIdeas | orderBy:predicate:reverse | startFrom:(currentPage - 1)*pageSize | limitTo: pageSize">
                                 <td class="col-md-1">{{idea.title}}</td>
                                 <td class="col-md-2">{{idea.description}}</td>
-                                <td class="col-md-1">{{idea.category}}</td>
+                                <td class="col-md-1">
+                                    <button class="btn tag">{{idea.category}}</button>
+                                </td>
                                 <td class="col-md-2">
                                     <div class="tag category blue pull-left" ng-repeat="tag in idea.tags track by $index" disabled>{{tag}}</div>
                                 </td>
