@@ -99,6 +99,8 @@ module.exports = function(passport) {
 	 * Sign in with Facebook.
 	 */
 	passport.use(new FacebookStrategy(secrets.facebook, function(req, accessToken, refreshToken, profile, done) {
+		console.log(profile);
+		console.log('1111111111111111111111111111222111111111');
 		if (req.user) {
 			User.findOne({
 				facebook: profile.id
@@ -210,7 +212,9 @@ module.exports = function(passport) {
 			User.findOne({
 				google: profile.id
 			}, function(err, existingUser) {
-				if (existingUser) return done(null, existingUser);
+				if (existingUser) {
+					return done(null, existingUser);
+				}
 				User.findOne({
 					email: profile.emails[0].value
 				}, function(err, existingEmailUser) {
@@ -228,7 +232,7 @@ module.exports = function(passport) {
 							kind: 'google',
 							accessToken: accessToken
 						});
-						
+
 						user.name = profile.displayName;
 						user.local.username = profile.id;
 						user.profile.name = profile.displayName;

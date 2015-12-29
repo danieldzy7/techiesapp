@@ -21,13 +21,11 @@ module.exports = function(router, passport) {
 		failureFlash: true
 	}));
 
-	//localhost:8080/auth/signup
 	router.get('/signup', function(req, res) {
 		res.render('signup.ejs', {
 			message: req.flash('signupMessage')
 		});
 	});
-
 
 	router.post('/signup', passport.authenticate('local-signup', {
 		successRedirect: '/profile',
