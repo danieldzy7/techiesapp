@@ -8,21 +8,26 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.techiUser = $window.user;
 		$scope.filterTags = currentUser.filter.join(';');
 		$scope.token = currentUser._id;
-		$scope.displayName=currentUser.name;
+		$scope.displayName = currentUser.name;
 		$scope.username = currentUser.local.username;
-		$scope.currentPage=1;
+		$scope.currentPage = 1;
 		$scope.categoryPreference = currentUser.categoryPreference;
 		$scope.sortingPreferenceOrder = currentUser.sortingPreference.order;
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
 
-		if(!currentUser.profile.picture){
-			$scope.logoSrc="../img/logo1.jpg";
+		if (!currentUser.profile.picture) {
+			$scope.logoSrc = "../img/logo1.jpg";
 		}
-		else{
-			changesize=currentUser.profile.picture;
-			$scope.logoSrc=changesize.substr(0,changesize.indexOf('?sz=')) + '?sz=175';
+		else {
+			if (currentUser.tokens.kind == 'google') {
+				var changesize = '';
+				changesize = currentUser.profile.picture;
+				$scope.logoSrc = changesize.substr(0, changesize.indexOf('?sz=')) + '?sz=175';
+			}
+			if (currentUser.tokens.kind == 'facebook') {
+				$scope.logoSrc = currentUser.profile.picture;
+			}
 		}
-
 		$http.get('/api/getUserIdeas' + '?access_token=' + $scope.token, {
 			username: $scope.username
 		}).success(function(response) {
@@ -355,7 +360,7 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		}
 	}
 
-	$scope.retrieve = function(posInt,sdate,edate) {
+	$scope.retrieve = function(posInt, sdate, edate) {
 		if (posInt > 0) {
 			edate.setHours(0);
 			edate.setMinutes(0);
@@ -424,50 +429,61 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 	}, {
 		image: "../img/underdev1.jpg"
 	}];
-	
+
 	$scope.notYet = function() {
 		toastr.error('LOL I just PUT a button there :P  Underdev');
 	};
-// --------------------- Chatroom -----------------------------//
-	
-	Socket.connect();
-	
-	$scope.leaveChat= function(){
-        Socket.disconnect(true);
-        $scope.sectionName='ideaMain';
-    }
-    
-    $scope.sendMessage = function(msg){
-        if(msg != null && msg != '')
-            Socket.emit('message', {message: msg})
-        $scope.msg = '';
-    }
-    
-	$scope.chatUsers=[];
-	$scope.messages=[];
 
-	Socket.emit('add-user', {displayName: $scope.displayName})
+	// --------------------- Chatroom -----------------------------//
+
+	Socket.connect();
+
+	$scope.leaveChat = function() {
+		Socket.disconnect(true);
+		$scope.sectionName = 'ideaMain';
+	}
+
+	$scope.sendMessage = function(msg) {
+		if (msg != null && msg != '')
+			Socket.emit('message', {
+				message: msg
+			})
+		$scope.msg = '';
+	}
+
+	$scope.chatUsers = [];
+	$scope.messages = [];
+
+	Socket.emit('add-user', {
+		displayName: $scope.displayName
+	})
 	Socket.emit('request-users', {});
-	
-	Socket.on('users', function(data){
-        $scope.chatUsers = data.chatUsers;
-    });
-    
-    Socket.on('message', function(data){
-    	console.log($scope.messages);
-        $scope.messages.push(data);
-    });
-    
-    Socket.on('add-user', function(data){
-        $scope.chatUsers.push(data.displayName);
-        $scope.messages.push({displayName: data.displayName, message: 'has entered the channel'});
-    });
-    
-    Socket.on('remove-user', function(data){
-        $scope.chatUsers.splice($scope.chatUsers.indexOf(data.displayName), 1);
-        $scope.messages.push({displayName: data.displayName, message: 'has left the channel'});
-    });
-	
+
+	Socket.on('users', function(data) {
+		$scope.chatUsers = data.chatUsers;
+	});
+
+	Socket.on('message', function(data) {
+		console.log($scope.messages);
+		$scope.messages.push(data);
+	});
+
+	Socket.on('add-user', function(data) {
+		$scope.chatUsers.push(data.displayName);
+		$scope.messages.push({
+			displayName: data.displayName,
+			message: 'has entered the channel'
+		});
+	});
+
+	Socket.on('remove-user', function(data) {
+		$scope.chatUsers.splice($scope.chatUsers.indexOf(data.displayName), 1);
+		$scope.messages.push({
+			displayName: data.displayName,
+			message: 'has left the channel'
+		});
+	});
+
 });
 
 //----------------------------MainModal Controller-------------------------------------//
@@ -550,14 +566,13 @@ app.config(function(toastrConfig) {
 	});
 });
 
-app.factory('Socket', ['socketFactory', function(socketFactory){
-    return socketFactory();
+app.factory('Socket', ['socketFactory', function(socketFactory) {
+	return socketFactory();
 }])
 
 // --------------------------Filter for pagenation----------------------------------//
-app.filter('startFrom', function(){
-    return function(data, start){
-        return data.slice(start);
-    }
+app.filter('startFrom', function() {
+	return function(data, start) {
+		return data.slice(start);
+	}
 });
-    
