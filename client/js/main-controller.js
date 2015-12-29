@@ -19,12 +19,12 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 			$scope.logoSrc = "../img/logo1.jpg";
 		}
 		else {
-			if (currentUser.tokens.kind == 'google') {
+			if (currentUser.tokens[0].kind == 'google') {
 				var changesize = '';
 				changesize = currentUser.profile.picture;
 				$scope.logoSrc = changesize.substr(0, changesize.indexOf('?sz=')) + '?sz=175';
 			}
-			if (currentUser.tokens.kind == 'facebook') {
+			if (currentUser.tokens[0].kind == 'facebook') {
 				$scope.logoSrc = currentUser.profile.picture;
 			}
 		}
