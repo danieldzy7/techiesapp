@@ -99,8 +99,6 @@ module.exports = function(passport) {
 	 * Sign in with Facebook.
 	 */
 	passport.use(new FacebookStrategy(secrets.facebook, function(req, accessToken, refreshToken, profile, done) {
-		console.log(profile);
-		console.log('1111111111111111111111111111222111111111');
 		if (req.user) {
 			User.findOne({
 				facebook: profile.id
@@ -121,7 +119,7 @@ module.exports = function(passport) {
 						user.name = profile.displayName;
 						user.local.username = profile.id;
 						user.profile.name = user.profile.name || profile.displayName;
-						user.profile.gender = user.profile.gender || profile._json.gender;
+						user.profile.gender = user.profile.gender || profile.gender;
 						user.profile.picture = user.profile.picture || 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
 						user.save(function(err) {
 							req.flash('info', {
@@ -137,37 +135,25 @@ module.exports = function(passport) {
 			User.findOne({
 				facebook: profile.id
 			}, function(err, existingUser) {
-				if (existingUser) return done(null, existingUser);
-				User.findOne({
-					email: profile._json.email
-				}, function(err, existingEmailUser) {
-					if (existingEmailUser) {
-						req.flash('errors', {
-							msg: 'There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings.'
-						});
-						done(err);
-					}
-					else {
-						var user = new User();
-						user.email = profile._json.email;
-						user.facebook = profile.id;
-						user.tokens.push({
-							kind: 'facebook',
-							accessToken: accessToken
-						});
-						console.log(profile);
-						console.log('1111111111111111111111111111111111111');
-						user.name = profile.displayName;
-						user.local.username = profile.id;
-						user.profile.name = profile.displayName;
-						user.profile.gender = profile._json.gender;
-						user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
-						user.profile.location = (profile._json.location) ? profile._json.location.name : '';
-						user.save(function(err) {
-							done(err, user);
-						});
-					}
-				});
+				if (existingUser) {
+					return done(null, existingUser);
+				}
+				else {
+					var user = new User();
+					user.facebook = profile.id;
+					user.tokens.push({
+						kind: 'facebook',
+						accessToken: accessToken
+					});
+					user.name = profile.displayName;
+					user.local.username = profile.id;
+					user.profile.name = profile.displayName;
+					user.profile.gender = profile.gender;
+					user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
+					user.save(function(err) {
+						done(err, user);
+					});
+				}
 			});
 		}
 	}));
