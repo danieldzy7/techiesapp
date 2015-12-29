@@ -153,7 +153,8 @@ module.exports = function(passport) {
 							kind: 'facebook',
 							accessToken: accessToken
 						});
-						
+						console.log(profile);
+						console.log('1111111111111111111111111111111111111');
 						user.name = profile.displayName;
 						user.local.username = profile.id;
 						user.profile.name = profile.displayName;
@@ -190,7 +191,6 @@ module.exports = function(passport) {
 							kind: 'google',
 							accessToken: accessToken
 						});
-						
 						user.name = profile.displayName;
 						user.local.username = profile.id;
 						user.profile.name = user.profile.name || profile.displayName;

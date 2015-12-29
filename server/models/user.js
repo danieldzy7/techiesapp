@@ -18,6 +18,7 @@ var userSchema = new mongoose.Schema({
 	local: {
 		username: {
 			type: String,
+			unique: true
 
 		},
 		password: {
@@ -74,6 +75,7 @@ var userSchema = new mongoose.Schema({
 	facebook: String,
 	google: String,
 	tokens: Array,
+	email: String,
 
 	profile: {
 		name: {
