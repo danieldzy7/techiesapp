@@ -120,7 +120,7 @@ module.exports = function(passport) {
 						user.local.username = profile.id;
 						user.profile.name = user.profile.name || profile.displayName;
 						user.profile.gender = user.profile.gender || profile.gender;
-						user.profile.picture = user.profile.picture || 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
+						user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large'+ "&access_token=" + accessToken;
 						user.save(function(err) {
 							req.flash('info', {
 								msg: 'Facebook account has been linked.'
@@ -218,7 +218,6 @@ module.exports = function(passport) {
 							kind: 'google',
 							accessToken: accessToken
 						});
-
 						user.name = profile.displayName;
 						user.local.username = profile.id;
 						user.profile.name = profile.displayName;

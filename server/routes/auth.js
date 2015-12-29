@@ -8,7 +8,6 @@ module.exports = function(router, passport) {
 		res.render('index.ejs');
 	});
 
-	//localhost:8080/auth/login
 	router.get('/login', function(req, res) {
 		res.render('login.ejs', {
 			message: req.flash('loginMessage')
