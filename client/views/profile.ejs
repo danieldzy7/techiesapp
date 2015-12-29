@@ -106,14 +106,14 @@
                 <div ng-if="(userIdeas).length == 0" class="text-center">
                     <div class="main-greeting">Hello</div>
                     <div class="main-name">{{displayName}}</div>
-                    <div class="main-container btn btn-success" ng-click="create()">Create a new idea</div>
+                    <div class="main-container btn btn-success" ng-click="create()">Create A New Idea</div>
                 </div>
                 <br>
                 <div ng-if="(userIdeas).length > 0" class="panel panel-default">
                     <div class="panel-heading">
-                        <div class="btn disabled"><b>MY ideas</b></div>
+                        <div class="btn disabled"><b>MY Ideas</b></div>
                         <button class="btn btn-danger" ng-click=" myFilter.category=''; create()">Create New Idea</button>
-                        <button class="btn tag pull-right color color-travel" ng-click="myFilter.category = ''">Show All Ideas</button>
+                        <button class="btn tag pull-right color color-travel" ng-click="myFilter.category = ''; selectedCategory = ''">Show All Ideas</button>
                     </div>
                     <table class="table" ng-init="selectedCategory=''">
                         <thead>
@@ -156,7 +156,7 @@
 
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <div class="btn disabled"><b> Ideas from Other users</b></div>
+                        <div class="btn disabled"><b> Ideas From Other Users</b></div>
                         <button ng-if="(categoryPreference).indexOf('Travel') > -1" class="btn tag pull-right color color-travel" ng-click="toggle('Travel')">Travel</button>
                         <button ng-if="(categoryPreference).indexOf('Travel') == -1" class="btn tag pull-right blank" ng-click="toggle('Travel')">Travel</button>
                         <button ng-if="(categoryPreference).indexOf('Finance') > -1" class="btn tag pull-right color color-finance" ng-click="toggle('Finance')">Finance</button>
