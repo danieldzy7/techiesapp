@@ -193,7 +193,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr ng-repeat="idea in otherIdeas | orderBy:predicate:reverse">
+                            <tr ng-repeat="idea in otherIdeas | orderBy:predicate:reverse | startFrom:(currentPage - 1)*pageSize | limitTo: pageSize">
                                 <td class="col-md-1">{{idea.title}}</td>
                                 <td class="col-md-2">{{idea.description}}</td>
                                 <td class="col-md-1">{{idea.category}}</td>
@@ -230,8 +230,11 @@
                         <span class="category"> to </span>
                         <input type="date" class="form-control" ng-model="edate" placeholder="Ending date">
                         <button class="btn btn-default" ng-click="retrieve(posInt,sdate,edate)">Go</button>
+                        
                     </div>
+                    <pagination total-items="otherIdeas.length" ng-model="currentPage" items-per-page="pageSize" class="pull-right"></pagination>
                 </form>
+                       
             </div>
 
             <div class="row" ng-if="sectionName==='profile'">
@@ -295,7 +298,7 @@
             <div class="row" ng-if="sectionName==='underDev'">
                 <carousel interval="myInterval">
                     <slide ng-repeat="slide in slides" active="slide.active">
-                        <img ng-src="{{slide.image}}" style="margin:auto; width:100%">
+                        <img ng-src="{{slide.image}}" style="width:100%;">
                     </slide>
                 </carousel>
             </div>
@@ -421,11 +424,7 @@
         <!-- / -->
     </div>
 
-    <footer class="footer">
-        <div class="container">
-            <p class="text-muted">Find me on Linkedin, Cloud9, Github, Heroku, and Facebook</p>
-        </div>
-    </footer>
+    <div class="footer"></div>
     
     <script src="../js/libs/jquery.min.js"></script>
     <script src="../js/libs/bootstrap.min.js"></script>

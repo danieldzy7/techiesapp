@@ -10,6 +10,7 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 		$scope.token = currentUser._id;
 		$scope.displayName=currentUser.name;
 		$scope.username = currentUser.local.username;
+		$scope.currentPage=1;
 		$scope.categoryPreference = currentUser.categoryPreference;
 		$scope.sortingPreferenceOrder = currentUser.sortingPreference.order;
 		$scope.sortingPreferenceSortBy = currentUser.sortingPreference.sortBy;
@@ -413,6 +414,7 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 	};
 
 	$scope.myFilter = {};
+	$scope.pageSize = 6;
 
 	$scope.myInterval = 1000;
 	$scope.slides = [{
@@ -551,3 +553,11 @@ app.config(function(toastrConfig) {
 app.factory('Socket', ['socketFactory', function(socketFactory){
     return socketFactory();
 }])
+
+// --------------------------Filter for pagenation----------------------------------//
+app.filter('startFrom', function(){
+    return function(data, start){
+        return data.slice(start);
+    }
+});
+    
