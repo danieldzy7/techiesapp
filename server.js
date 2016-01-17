@@ -6,6 +6,7 @@ var http = require('http').Server(app);
 var io = require("socket.io")(http);
 var port = process.env.PORT;
 var cookieParser = require('cookie-parser');
+var helmet = require('helmet');
 var session = require('express-session'); 
 var morgan = require('morgan');
 var nodemailer = require('nodemailer');
@@ -21,6 +22,7 @@ var configDB = require('./server/config/database.js');
 mongoose.connect(configDB.url);
 require('./server/config/passport')(passport); // Get user's passport config setting. 
 
+app.use(helmet());
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(methodOverride());

@@ -433,15 +433,73 @@ function getRatings(email, callback) {
 	});
 }
 
-
-
+function categoryCount(callback) {
+	var category_count = {
+		health: 0,
+		technology: 0,
+		education: 0,
+		finance: 0,
+		travel: 0
+	}
+	Idea.find({
+		'category': "Health"
+	}, function(err, result) {
+		if (err) {
+			console.log(err);
+			throw err;
+		} else {
+			category_count.health = result.length;
+			Idea.find({
+				'category': "Technology"
+			}, function(err, result) {
+				if (err) {
+					console.log(err);
+					throw err;
+				} else {
+					category_count.technology = result.length;
+					Idea.find({
+						'category': "Education"
+					}, function(err, result) {
+						if (err) {
+							console.log(err);
+							throw err;
+						} else {
+							category_count.education = result.length;
+							Idea.find({
+								'category': "Finance"
+							}, function(err, result) {
+								if (err) {
+									console.log(err);
+									throw err;
+								} else {
+									category_count.finance = result.length;
+									Idea.find({
+										'category': "Travel"
+									}, function(err, result) {
+										if (err) {
+											console.log(err);
+											throw err;
+										} else {
+											category_count.travel = result.length;
+											callback(category_count);
+										}
+									});
+								}
+							});
+						}
+					});
+				}
+			});
+		}
+	});
+}
 
 
 exports.findRating = findRating;
 exports.pushUserRating = pushUserRating;
 exports.pullUserRating = pullUserRating;
 exports.getRatings = getRatings;
-
+exports.categoryCount = categoryCount;
 
 exports.updateCategory = updateCategory;
 exports.retrieve = retrieve;

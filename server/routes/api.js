@@ -60,11 +60,16 @@ module.exports = function(router, passport) {
 	});
 
 	router.post('/retrieve', function(req, res) {
-	func.retrieve(req.body.posInt, req.body.sdate, req.body.edate, function(response) {
-		res.json(response);
-		});
+		func.retrieve(req.body.posInt, req.body.sdate, req.body.edate, function(response) {
+			res.json(response);
+			});
 	});
 	
+	router.get('/categoryCount', function(req, res){
+		func.categoryCount(function(result){
+			res.json(result);
+		});
+	});
 
 //------------------------------- Likes Dislikes---------------------------------//
 

@@ -1,5 +1,5 @@
 var app = angular.module('main', ['ui.bootstrap', 'ngAnimate', 'toastr', 'btford.socket-io']);
-app.controller('MainController', function($scope, $modal, $http, $window, toastr, Socket) {
+app.controller('MainController', function($scope, $modal, $http, makeIdeaChart ,$window, toastr, Socket) {
 
 	var refresh = function() {
 		$scope.currentDate = new Date();
@@ -28,22 +28,29 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 				$scope.logoSrc = currentUser.profile.picture;
 			}
 		}
+
 		$http.get('/api/getUserIdeas' + '?access_token=' + $scope.token, {
 			username: $scope.username
 		}).success(function(response) {
 			$scope.userIdeas = response;
 		});
+
 		$http.get('/api/getOtherIdeas' + '?access_token=' + $scope.token).success(function(response) {
 			$scope.otherIdeas = response;
 		});
+
 		$http.get('/api/getRatings' + '?access_token=' + $scope.token).success(function(response) {
 			$scope.ratings = response;
 		});
+		
+		makeIdeaChart($scope.token);
+
 	};
 	refresh();
 
 	$scope.swapView = function(currentView) {
 		$scope.sectionName = currentView;
+		makeIdeaChart($scope.token);
 	}
 
 	$scope.logout = function() {
@@ -368,7 +375,8 @@ app.controller('MainController', function($scope, $modal, $http, $window, toastr
 			$http.post('/api/retrieve' + '?access_token=' + $scope.token, {
 				posInt: posInt,
 				sdate: sdate,
-				edate: edate
+				edate: edate,
+				cache: true
 			}).success(function(response) {
 				$scope.retrieveModal(response);
 			});
@@ -570,9 +578,120 @@ app.factory('Socket', ['socketFactory', function(socketFactory) {
 	return socketFactory();
 }])
 
+app.factory('makeIdeaChart', ['$http', function($http) {
+	return function(token){
+			$http.get('/api/categoryCount' + '?access_token=' + token).success(function(response) {
+			var chart = AmCharts.makeChart("chartdiv", {
+				"type": "serial",
+				"theme": "none",
+				"titles": [{
+					"text": "Column Chart of Ideas Categories",
+					"size": 16
+				}],
+				"dataProvider": [{
+					"category": "Health",
+					"visits": response.health,
+					"color": "#337ab7"
+				}, {
+					"category": "Technology",
+					"visits": response.technology,
+					"color": "#5cb85c"
+				}, {
+					"category": "Education",
+					"visits": response.education,
+					"color": "#5bc0de"
+				}, {
+					"category": "Finance",
+					"visits": response.finance,
+					"color": "#f0ad4e"
+				}, {
+					"category": "Travel",
+					"visits": response.travel,
+					"color": "#d9534f"
+				}],
+				"valueAxes": [{
+					"axisAlpha": 0,
+					"position": "left",
+					"title": "Number of ideas",
+					"integersOnly": true
+				}],
+				"startDuration": 0,
+				"graphs": [{
+					"balloonText": "<b>[[category]]: [[value]]</b>",
+					"fillColorsField": "color",
+					"fillAlphas": 0.9,
+					"lineAlpha": 0.2,
+					"type": "column",
+					"valueField": "visits"
+				}],
+				"chartCursor": {
+					"categoryBalloonEnabled": false,
+					"cursorAlpha": 0,
+					"zoomable": false
+				},
+				"categoryField": "category",
+				"categoryAxis": {
+					"gridPosition": "start",
+					"labelRotation": 20
+				},
+				"amExport": {}
+			});
+
+			var chart = AmCharts.makeChart("chartdiv2", {
+				"type": "pie",
+				"theme": "light",
+				"titles": [{
+					"text": "Pie Chart of Ideas Categories",
+					"size": 16
+				}],
+				"dataProvider": [{
+					"category": "Health",
+					"visits": response.health,
+					"color": "#337ab7"
+				}, {
+					"category": "Technology",
+					"visits": response.technology,
+					"color": "#5cb85c"
+				}, {
+					"category": "Education",
+					"visits": response.education,
+					"color": "#5bc0de"
+				}, {
+					"category": "Finance",
+					"visits": response.finance,
+					"color": "#f0ad4e"
+				}, {
+					"category": "Travel",
+					"visits": response.travel,
+					"color": "#d9534f"
+				}],
+				"valueField": "visits",
+				"titleField": "category",
+				"startEffect": "elastic",
+				"startDuration": 2,
+				"labelRadius": 15,
+				"innerRadius": "50%",
+				"depth3D": 10,
+				"balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+				"angle": 15,
+				"export": {
+					"enabled": true
+				}
+			});
+		});
+
+	};
+}])
+
 // --------------------------Filter for pagenation----------------------------------//
 app.filter('startFrom', function() {
 	return function(data, start) {
 		return data.slice(start);
 	}
 });
+
+
+
+
+
+

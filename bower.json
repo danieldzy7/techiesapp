@@ -22,6 +22,7 @@
     "angular-route": "~1.4.8",
     "angular-resource": "~1.4.8",
     "angular-socket-io": "~0.7.0",
-    "font-awesome": "~4.5.0"
+    "font-awesome": "~4.5.0",
+    "amcharts3": "~3.18.6"
   }
 }
