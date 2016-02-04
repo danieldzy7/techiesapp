@@ -25,3 +25,15 @@ Local installation:
     
 Heroku hosting:
     Access the web application at http://techies-demo.herokuapp.com.
+
+Features:
+
+Profiling: When users register for application, they create a personal profile. Here they provide their department of study and the area of specialization. Backend side will create token and id.
+
+User Authentication and Authorization: System authenticates users based on correct email and password combination. App requires every user to have a unique email address. There is also an option for users to login using their Google account and Facebook. 
+
+Data and Assets: Users could create and share their ideas to others. The Ideas contain title, description, tags and so on. Ideas could also be rated by other users.
+ 
+Social Network: Socket.io based Chatroom design
+
+Search and Filtering: Two types of filters to get filtered user ideas and others’ idea.
