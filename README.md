@@ -6,7 +6,7 @@ Name: Techies  (MEAN Stack Web Application)
 
 Synopsis:
 
-    Techies is web app target people who want to learn MEAN stack web development. Techies 
+    Techies is web app developed by using MEAN stack framework. Techies 
     admin site allowed user to create their ideas and interact with other user, and this
     webapp itself is a fully functional and could be used as learning resource.
 
