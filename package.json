@@ -8,8 +8,7 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install-deps": "npm install && bower install",
-    "setup": "npm run install-deps && echo \"Setup complete! Run 'npm start' to start the server.\"",
-    "postinstall": "bower install"
+    "setup": "npm run install-deps && echo \"Setup complete! Run 'npm start' to start the server.\""
   },
   "keywords": [
     "ideas",
