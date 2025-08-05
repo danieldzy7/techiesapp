@@ -2,6 +2,12 @@
 
 A collaborative idea sharing platform built with Node.js, Express, MongoDB, and AngularJS. Share, discover, and collaborate on innovative ideas with other tech enthusiasts.
 
+## 🌐 Live Demo
+
+**Try the app online**: [https://techiesapp.onrender.com](https://techiesapp.onrender.com)
+
+> ⚠️ **Note**: The app may take 30-60 seconds to wake up on first visit (free tier limitation).
+
 ## ✨ Features
 
 - **Idea Management**: Create, edit, and delete ideas with categories and tags
