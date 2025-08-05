@@ -94,6 +94,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+// Load Passport configuration
+require('./server/config/passport.js')(passport);
+
 // ============================================================================
 // VIEW ENGINE & STATIC FILES
 // ============================================================================
