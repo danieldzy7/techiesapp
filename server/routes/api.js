@@ -22,7 +22,7 @@ module.exports = function(router, passport) {
 	});
 
 	router.post('/createIdea', function(req, res) {
-		func.createIdea(req.body.title, req.body.description, req.body.category, req.body.tags, req.body.username, function(result) {
+		func.createIdea(req.body.title, req.body.description, req.body.category, req.body.tags, req.user.local.username, function(result) {
 			res.json(result);
 		});
 	});
@@ -34,7 +34,7 @@ module.exports = function(router, passport) {
 	});
 	
 	router.delete('/idea', function(req, res) {
-		func.deleteIdea(req.param('id'), function(result) {
+		func.deleteIdea(req.query.id, function(result) {
 			res.json(result);
 		});
 	});
@@ -67,6 +67,24 @@ module.exports = function(router, passport) {
 	
 	router.get('/categoryCount', function(req, res){
 		func.categoryCount(function(result){
+			res.json(result);
+		});
+	});
+
+	router.post('/createSampleUsers', function(req, res) {
+		func.createSampleUsers(function(result) {
+			res.json(result);
+		});
+	});
+
+	router.post('/clearAllUserIdeas', function(req, res) {
+		func.clearAllUserIdeas(req.user.local.username, function(result) {
+			res.json(result);
+		});
+	});
+
+	router.post('/removeAllData', function(req, res) {
+		func.removeAllData(function(result) {
 			res.json(result);
 		});
 	});

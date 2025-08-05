@@ -1,119 +1,182 @@
-// Setup Express
-var express = require('express');
-var app = express();
+/**
+ * Techies App - Main Server File
+ * A Node.js application for idea sharing and collaboration
+ * 
+ * @author Daniel D
+ * @version 1.0.0
+ */
 
-var http = require('http').Server(app);
-var io = require("socket.io")(http);
-var port = process.env.PORT;
-var cookieParser = require('cookie-parser');
-var helmet = require('helmet');
-var session = require('express-session'); 
-var morgan = require('morgan');
-var nodemailer = require('nodemailer');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser'); // Enable req.body
-var passport = require('passport');
-var methodOverride = require('method-override'); // Enable expressjs to handle DELETE method
-var flash = require('connect-flash'); // Flash message to ejs file
-var MongoStore = require('connect-mongo')(session);
-var path = require('path');
+// ============================================================================
+// DEPENDENCIES & IMPORTS
+// ============================================================================
+const express = require('express');
+const http = require('http');
+const io = require('socket.io');
+const path = require('path');
 
-var configDB = require('./server/config/database.js');
-mongoose.connect(configDB.url);
-require('./server/config/passport')(passport); // Get user's passport config setting. 
+// Middleware
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const session = require('express-session');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const passport = require('passport');
+const methodOverride = require('method-override');
+const flash = require('connect-flash');
+const MongoStore = require('connect-mongo');
 
-app.use(helmet());
+// Database
+const mongoose = require('mongoose');
+const configDB = require('./server/config/database.js');
+
+// ============================================================================
+// APP INITIALIZATION
+// ============================================================================
+const app = express();
+const server = http.Server(app);
+const socketIO = io(server);
+const PORT = process.env.PORT || 3000;
+
+// ============================================================================
+// DATABASE CONNECTION
+// ============================================================================
+mongoose.connect(configDB.url)
+	.then(() => console.log('✅ MongoDB connected successfully'))
+	.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// ============================================================================
+// MIDDLEWARE CONFIGURATION
+// ============================================================================
+
+// Security middleware
+app.use(helmet({
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+			scriptSrc: [
+				"'self'", 
+				"'unsafe-inline'", 
+				"'nonce-user-data'", 
+				"https://cdn.socket.io", 
+				"https://maxcdn.bootstrapcdn.com"
+			],
+			styleSrc: [
+				"'self'", 
+				"'unsafe-inline'", 
+				"https://maxcdn.bootstrapcdn.com"
+			],
+			imgSrc: ["'self'", "data:", "https:"],
+			connectSrc: ["'self'", "ws:", "wss:"]
+		}
+	}
+}));
+
+// Logging and parsing middleware
 app.use(morgan('dev'));
 app.use(cookieParser());
-app.use(methodOverride());
-app.use(bodyParser.urlencoded({
-	extended: false
-}));
-app.use(bodyParser.json()); 
+app.use(methodOverride('_method'));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
+// Session configuration
 app.use(session({
 	secret: 'ilovewebprogramming',
-	saveUninitialized: true,
-	resave: true,
-	store: new MongoStore({
-		mongooseConnection: mongoose.connection,
-		ttl: 2 * 24 * 60 * 60
+	saveUninitialized: false,
+	resave: false,
+	store: MongoStore.create({
+		mongoUrl: configDB.url,
+		ttl: 2 * 24 * 60 * 60 // 2 days
 	})
 }));
 
+// Authentication middleware
 app.use(passport.initialize());
-app.use(passport.session()); // Persistent login sessions
-app.use(flash()); // Use connect-flash for flash messages stored in session
+app.use(passport.session());
+app.use(flash());
 
-// Set view engine to EJS, and set the directory our views will be stored in
+// ============================================================================
+// VIEW ENGINE & STATIC FILES
+// ============================================================================
 app.set('view engine', 'ejs');
 app.set('views', path.resolve(__dirname, 'client', 'views'));
-
-// Serve static files from client folder.
-// ex: libs/bootstrap/bootstrap.css in our html actually points to client/libs/bootstrap/bootstrap.css
 app.use(express.static(path.resolve(__dirname, 'client')));
 
-app.use(function(req, res, next) {
-	next();
+// ============================================================================
+// ROUTES
+// ============================================================================
+
+// Root route - redirect to auth landing page
+app.get('/', (req, res) => {
+	res.redirect('/auth');
 });
 
-// Socket.io ChatRoom setup
-var chatUsers = [];
-io.on('connection', function(socket) {
+// API routes (OAuth token based)
+const apiRouter = express.Router();
+require('./server/routes/api.js')(apiRouter, passport);
+app.use('/api', apiRouter);
 
-	var displayName = '';
-	console.log('A user has connected............')
+// Authentication routes
+const authRouter = express.Router();
+require('./server/routes/auth.js')(authRouter, passport);
+app.use('/auth', authRouter);
 
-	socket.on('request-users', function() {
-		socket.emit('chatUsers', {
-			chatUsers: chatUsers
+// Secure routes (must come after auth routes)
+const secureRouter = express.Router();
+require('./server/routes/secure.js')(secureRouter, passport);
+app.use('/', secureRouter);
+
+// ============================================================================
+// SOCKET.IO CHAT ROOM SETUP
+// ============================================================================
+const chatUsers = [];
+
+socketIO.on('connection', (socket) => {
+	let displayName = '';
+	console.log('👤 User connected to chat room');
+
+	// Send current users list
+	socket.on('request-users', () => {
+		socket.emit('chatUsers', { chatUsers });
+	});
+
+	// Handle chat messages
+	socket.on('message', (data) => {
+		socketIO.emit('message', {
+			displayName,
+			message: data.message
 		});
 	});
 
-	socket.on('message', function(data) {
-		io.emit('message', {
-			displayName: displayName,
-			message: data.message
-		});
-	})
-	
-	socket.on('add-user', function(data) {
-		if (chatUsers.indexOf(data.displayName) == -1) {
-			io.emit('add-user', {
+	// Add user to chat room
+	socket.on('add-user', (data) => {
+		if (chatUsers.indexOf(data.displayName) === -1) {
+			socketIO.emit('add-user', {
 				displayName: data.displayName
 			});
 			displayName = data.displayName;
 			chatUsers.push(data.displayName);
-		}
-		else {
+		} else {
 			socket.emit('prompt-username', {
 				message: 'User Already Exists'
-			})
+			});
 		}
-	})
+	});
 
-	socket.on('disconnect', function() {
-		console.log(displayName + ' has disconnected..............');
-		chatUsers.splice(chatUsers.indexOf(displayName), 1);
-		io.emit('remove-user', {
-			displayName: displayName
-		});
-	})
+	// Handle user disconnection
+	socket.on('disconnect', () => {
+		console.log(`👤 ${displayName} disconnected from chat room`);
+		const userIndex = chatUsers.indexOf(displayName);
+		if (userIndex > -1) {
+			chatUsers.splice(userIndex, 1);
+		}
+		socketIO.emit('remove-user', { displayName });
+	});
 });
 
-// Api Router Oauth token
-var api = express.Router();
-require('./server/routes/api.js')(api, passport);
-app.use('/api', api);
-
-// Passport auth
-var auth = express.Router();
-require('./server/routes/auth.js')(auth, passport);
-app.use('/auth', auth);
-
-var secure = express.Router();
-require('./server/routes/secure.js')(secure, passport);
-app.use('/', secure);
-
-http.listen(port);
-console.log('Server running on port: ' + port);
+// ============================================================================
+// SERVER STARTUP
+// ============================================================================
+server.listen(PORT, () => {
+	console.log(`🚀 Server running on port: ${PORT}`);
+	console.log(`📱 Application available at: http://localhost:${PORT}`);
+});

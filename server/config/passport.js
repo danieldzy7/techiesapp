@@ -1,6 +1,6 @@
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
 var BearerStrategy = require('passport-http-bearer').Strategy;
 
 var User = require('../models/user');
@@ -12,10 +12,13 @@ module.exports = function(passport) {
 		done(null, user.id);
 	});
 
-	passport.deserializeUser(function(id, done) {
-		User.findById(id, function(err, user) {
-			done(err, user);
-		});
+	passport.deserializeUser(async function(id, done) {
+		try {
+			const user = await User.findById(id);
+			done(null, user);
+		} catch (err) {
+			done(err, null);
+		}
 	});
 
 	passport.use('local-signup', new LocalStrategy({
@@ -23,50 +26,42 @@ module.exports = function(passport) {
 			passwordField: 'password',
 			passReqToCallback: true
 		},
-		function(req, email, password, done) {
-			process.nextTick(function() {
-				User.findOne({
+		async function(req, email, password, done) {
+			try {
+				const existingUser = await User.findOne({
 					'local.username': email
-				}, function(err, user) {
-					if (err) {
-						return done(err);
-					}
-					if (user) {
-						return done(null, false, req.flash('signupMessage', 'That email already taken'));
-					}
-					if (!req.user) {
-						var newUser = new User();
-						console.log('Signup Request body: ' + req.body);
-						newUser.name = req.body.name;
-						newUser.local.username = email;
-						newUser.local.password = newUser.generateHash(password);
-						newUser.image = 'NO IMAGE';
-						newUser.department = req.body.department;
+				});
+				
+				if (existingUser) {
+					req.flash('signupMessage', 'That email already taken');
+					return done(null, false);
+				}
+				
+				if (!req.user) {
+					var newUser = new User();
+					console.log('Signup Request body:', JSON.stringify(req.body));
+					newUser.name = req.body.name;
+					newUser.local.username = email;
+					newUser.local.password = newUser.generateHash(password);
+					newUser.image = 'NO IMAGE';
+					newUser.department = req.body.department;
 
-						newUser.save(function(err) {
-							if (err) {
-								console.log('Error in Saving user: ' + err);
-								throw err;
-							}
-							console.log(newUser.UserId + ' Registration succesful');
-							return done(null, newUser);
-						})
-					}
-					else {
-						var user = req.user;
-						user.local.username = email;
-						user.local.password = user.generateHash(password);
+					await newUser.save();
+					console.log('Registration successful for user: ' + newUser._id);
+					return done(null, newUser);
+				}
+				else {
+					var user = req.user;
+					user.local.username = email;
+					user.local.password = user.generateHash(password);
 
-						user.save(function(err) {
-							if (err) {
-								throw err;
-							}
-							return done(null, user);
-						})
-					}
-				})
-
-			});
+					await user.save();
+					return done(null, user);
+				}
+			} catch (err) {
+				console.log('Error in Saving user: ' + err);
+				return done(err);
+			}
 		}));
 
 	passport.use('local-login', new LocalStrategy({
@@ -74,67 +69,67 @@ module.exports = function(passport) {
 			passwordField: 'password',
 			passReqToCallback: true
 		},
-		function(req, email, password, done) {
-			process.nextTick(function() {
-				User.findOne({
+		async function(req, email, password, done) {
+			try {
+				const user = await User.findOne({
 					'local.username': email
-				}, function(err, user) {
-					if (err) {
-						return done(err);
-					}
-					if (!user) {
-						return done(null, false, req.flash('loginMessage', 'No Username Found'));
-					}
-					if (!user.validPassword(password)) {
-						return done(null, false, req.flash('loginMessage', 'Invalid Password'));
-					}
-					return done(null, user);
-
 				});
-			});
+				
+				if (!user) {
+					req.flash('loginMessage', 'No Username Found');
+					return done(null, false);
+				}
+				if (!user.validPassword(password)) {
+					req.flash('loginMessage', 'Invalid Password');
+					return done(null, false);
+				}
+				return done(null, user);
+			} catch (err) {
+				return done(err);
+			}
 		}
 	));
 
 	/**
 	 * Sign in with Facebook.
 	 */
-	passport.use(new FacebookStrategy(secrets.facebook, function(req, accessToken, refreshToken, profile, done) {
-		if (req.user) {
-			User.findOne({
-				facebook: profile.id
-			}, function(err, existingUser) {
+	passport.use(new FacebookStrategy(secrets.facebook, async function(req, accessToken, refreshToken, profile, done) {
+		try {
+			if (req.user) {
+				const existingUser = await User.findOne({
+					facebook: profile.id
+				});
+				
 				if (existingUser) {
 					req.flash('errors', {
 						msg: 'There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account.'
 					});
-					done(err);
+					return done(null);
 				}
 				else {
-					User.findById(req.user.id, function(err, user) {
-						user.facebook = profile.id;
-						user.tokens.push({
-							kind: 'facebook',
-							accessToken: accessToken
-						});
-						user.name = profile.displayName;
-						user.local.username = profile.id;
-						user.profile.name = user.profile.name || profile.displayName;
-						user.profile.gender = user.profile.gender || profile.gender;
-						user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large'+ "&access_token=" + accessToken;
-						user.save(function(err) {
-							req.flash('info', {
-								msg: 'Facebook account has been linked.'
-							});
-							done(err, user);
-						});
+					const user = await User.findById(req.user.id);
+					user.facebook = profile.id;
+					user.tokens.push({
+						kind: 'facebook',
+						accessToken: accessToken
 					});
+					user.name = profile.displayName;
+					user.local.username = profile.id;
+					user.profile.name = user.profile.name || profile.displayName;
+					user.profile.gender = user.profile.gender || profile.gender;
+					user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large'+ "&access_token=" + accessToken;
+					await user.save();
+					req.flash('info', {
+						msg: 'Facebook account has been linked.'
+					});
+					return done(null, user);
 				}
-			});
-		}
-		else {
-			User.findOne({
-				facebook: profile.id
-			}, function(err, existingUser) {
+			}
+			else {
+				const existingUser = await User.findOne({
+					facebook: profile.id
+				});
+				
 				if (existingUser) {
 					return done(null, existingUser);
 				}
@@ -150,100 +145,104 @@ module.exports = function(passport) {
 					user.profile.name = profile.displayName;
 					user.profile.gender = profile.gender;
 					user.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
-					user.save(function(err) {
-						done(err, user);
-					});
+					await user.save();
+					return done(null, user);
 				}
-			});
+			}
+		} catch (err) {
+			return done(err);
 		}
 	}));
 
 	/**
 	 * Sign in with Google.
 	 */
-	passport.use(new GoogleStrategy(secrets.google, function(req, accessToken, refreshToken, profile, done) {
-		if (req.user) {
-			User.findOne({
-				google: profile.id
-			}, function(err, existingUser) {
+	passport.use(new GoogleStrategy(secrets.google, async function(req, accessToken, refreshToken, profile, done) {
+		try {
+			if (req.user) {
+				const existingUser = await User.findOne({
+					google: profile.id
+				});
+				
 				if (existingUser) {
 					req.flash('errors', {
 						msg: 'There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account.'
 					});
-					done(err);
+					return done(null);
 				}
 				else {
-					User.findById(req.user.id, function(err, user) {
-						user.google = profile.id;
-						user.tokens.push({
-							kind: 'google',
-							accessToken: accessToken
-						});
-						user.name = profile.displayName;
-						user.local.username = profile.id;
-						user.profile.name = user.profile.name || profile.displayName;
-						user.profile.gender = user.profile.gender || profile._json.gender;
-						user.profile.picture = user.profile.picture || profile._json.image.url;
-						user.save(function(err) {
-							req.flash('info', {
-								msg: 'Google account has been linked.'
-							});
-							done(err, user);
-						});
+					const user = await User.findById(req.user.id);
+					user.google = profile.id;
+					user.tokens.push({
+						kind: 'google',
+						accessToken: accessToken
 					});
+					user.name = profile.displayName;
+					user.local.username = profile.id;
+					user.profile.name = user.profile.name || profile.displayName;
+					user.profile.gender = user.profile.gender || profile._json.gender;
+					user.profile.picture = user.profile.picture || profile._json.image.url;
+					await user.save();
+					req.flash('info', {
+						msg: 'Google account has been linked.'
+					});
+					return done(null, user);
 				}
-			});
-		}
-		else {
-			User.findOne({
-				google: profile.id
-			}, function(err, existingUser) {
+			}
+			else {
+				const existingUser = await User.findOne({
+					google: profile.id
+				});
+				
 				if (existingUser) {
 					return done(null, existingUser);
 				}
-				User.findOne({
+				
+				const existingEmailUser = await User.findOne({
 					email: profile.emails[0].value
-				}, function(err, existingEmailUser) {
-					if (existingEmailUser) {
-						req.flash('errors', {
-							msg: 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.'
-						});
-						done(err);
-					}
-					else {
-						var user = new User();
-						user.email = profile.emails[0].value;
-						user.google = profile.id;
-						user.tokens.push({
-							kind: 'google',
-							accessToken: accessToken
-						});
-						user.name = profile.displayName;
-						user.local.username = profile.id;
-						user.profile.name = profile.displayName;
-						user.profile.gender = profile._json.gender;
-						user.profile.picture = profile._json.image.url;
-						user.save(function(err) {
-							done(err, user);
-						});
-					}
 				});
-			});
+				
+				if (existingEmailUser) {
+					req.flash('errors', {
+						msg: 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.'
+					});
+					return done(null);
+				}
+				else {
+					var user = new User();
+					user.email = profile.emails[0].value;
+					user.google = profile.id;
+					user.tokens.push({
+						kind: 'google',
+						accessToken: accessToken
+					});
+					user.name = profile.displayName;
+					user.local.username = profile.id;
+					user.profile.name = profile.displayName;
+					user.profile.gender = profile._json.gender;
+					user.profile.picture = profile._json.image.url;
+					await user.save();
+					return done(null, user);
+				}
+			}
+		} catch (err) {
+			return done(err);
 		}
 	}));
 
-
 	passport.use(new BearerStrategy({},
-		function(token, done) {
-			User.findOne({
-				_id: token
-			}, function(err, user) {
+		async function(token, done) {
+			try {
+				const user = await User.findOne({
+					_id: token
+				});
+				
 				if (!user) {
 					return done(null, false);
 				}
 				return done(null, user);
-			});
+			} catch (err) {
+				return done(err);
+			}
 		}));
-
-
 };

@@ -34,20 +34,14 @@ var userSchema = new mongoose.Schema({
 		default: parsedDate
 	},
 	rating: {
-		likes: [{
-			type: String,
-			index: {
-				unique: true
-			},
+		likes: {
+			type: [String],
 			default: []
-		}],
-		dislikes: [{
-			type: String,
-			index: {
-				unique: true
-			},
+		},
+		dislikes: {
+			type: [String],
 			default: []
-		}]
+		}
 	},
 	categoryPreference: {
 		type: Array,

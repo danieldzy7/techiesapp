@@ -1,511 +1,671 @@
-var User = require('../models/user');
-var Idea = require('../models/idea');
+/**
+ * API Functions for Techies App
+ * Contains all business logic for idea management, user operations, and data processing
+ * 
+ * @author Daniel D
+ * @version 1.0.0
+ */
 
+// ============================================================================
+// DEPENDENCIES & IMPORTS
+// ============================================================================
+const User = require('../models/user');
+const Idea = require('../models/idea');
 
-function createIdea(title, description, category, tags, email, callback) {
-	User.findOne({
-		'local.username': email
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
+// ============================================================================
+// IDEA MANAGEMENT FUNCTIONS
+// ============================================================================
+
+/**
+ * Create a new idea for a user
+ * @param {string} title - Idea title
+ * @param {string} description - Idea description
+ * @param {string} category - Idea category
+ * @param {Array} tags - Idea tags
+ * @param {string} email - User email
+ * @param {Function} callback - Callback function
+ */
+async function createIdea(title, description, category, tags, email, callback) {
+	try {
+		// Find user by email
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		// Create new idea
+		const newIdea = new Idea({
+			author: {
+				'id': user._id,
+				'name': user.name,
+				'email': user.local.username
+			},
+			title: title,
+			normalized: title.toLowerCase(),
+			description: description,
+			tags: tags,
+			category: category
+		});
+		
+		const result = await newIdea.save();
+		callback(result);
+	} catch (err) {
+		console.error('Error creating idea:', err);
+		throw err;
+	}
+}
+
+/**
+ * Get all ideas for a specific user
+ * @param {string} email - User email
+ * @param {Function} callback - Callback function
+ */
+async function getUserIdeas(email, callback) {
+	try {
+		// Find user by email
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		// Get user's ideas
+		const ideas = await Idea.find({ 'author.id': user._id });
+		callback(ideas);
+	} catch (err) {
+		console.error('Error getting user ideas:', err);
+		throw err;
+	}
+}
+
+/**
+ * Update an existing idea
+ * @param {string} id - Idea ID
+ * @param {string} title - Updated title
+ * @param {string} description - Updated description
+ * @param {string} category - Updated category
+ * @param {Array} tags - Updated tags
+ * @param {number} likes - Like count change
+ * @param {number} dislikes - Dislike count change
+ * @param {Function} callback - Callback function
+ */
+async function updateIdea(id, title, description, category, tags, likes, dislikes, callback) {
+	try {
+		const updateData = {
+			$set: {
+				'title': title,
+				'description': description,
+				'category': category,
+				'tags': tags
+			}
+		};
+
+		// Add rating updates if provided
+		if (likes !== undefined || dislikes !== undefined) {
+			updateData.$inc = {};
+			if (likes !== undefined) updateData.$inc['rating.likes'] = likes;
+			if (dislikes !== undefined) updateData.$inc['rating.dislikes'] = dislikes;
+		}
+
+		const result = await Idea.findOneAndUpdate(
+			{ '_id': id },
+			updateData,
+			{ new: true }
+		);
+		
+		callback(result);
+	} catch (err) {
+		console.error('Error updating idea:', err);
+		throw err;
+	}
+}
+
+/**
+ * Delete an idea
+ * @param {string} id - Idea ID
+ * @param {Function} callback - Callback function
+ */
+async function deleteIdea(id, callback) {
+	try {
+		const result = await Idea.deleteOne({ '_id': id });
+		callback(result);
+	} catch (err) {
+		console.error('Error deleting idea:', err);
+		throw err;
+	}
+}
+
+/**
+ * Get ideas from other users (filtered by user preferences)
+ * @param {string} email - User email
+ * @param {Function} callback - Callback function
+ */
+async function getOtherIdeas(email, callback) {
+	try {
+		// Find user by email
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		// Build query based on user preferences
+		let query = { 'author.id': { $ne: user._id } };
+		
+		// Add category filter if user has preferences
+		if (user.categoryPreference && user.categoryPreference.length > 0) {
+			query.category = { $in: user.categoryPreference };
+		}
+		
+		// Add tag filter if user has filter tags
+		if (user.filter && user.filter.length > 0) {
+			query.tags = { $in: user.filter };
+		}
+		
+		const ideas = await Idea.find(query);
+		callback(ideas);
+	} catch (err) {
+		console.error('Error getting other ideas:', err);
+		throw err;
+	}
+}
+
+// ============================================================================
+// FILTERING & SEARCH FUNCTIONS
+// ============================================================================
+
+/**
+ * Set user filter preferences
+ * @param {string} email - User email
+ * @param {boolean} clear - Whether to clear filters
+ * @param {string} tags - Filter tags
+ * @param {Function} callback - Callback function
+ */
+async function setFilter(email, clear, tags, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		if (clear) {
+			// Clear all filters
+			user.filter = [];
+		} else if (tags) {
+			// Set new filter tags
+			user.filter = tags.split(';').filter(tag => tag.trim() !== '');
+		}
+		
+		await user.save();
+		callback(user);
+	} catch (err) {
+		console.error('Error setting filter:', err);
+		throw err;
+	}
+}
+
+/**
+ * Retrieve ideas by date range
+ * @param {number} posInt - Number of results to return
+ * @param {Date} sdate - Start date
+ * @param {Date} edate - End date
+ * @param {Function} callback - Callback function
+ */
+async function retrieve(posInt, sdate, edate, callback) {
+	try {
+		const ideas = await Idea.find({
+			date: {
+				$gte: sdate,
+				$lte: edate
+			}
+		}).limit(posInt);
+		
+		callback(ideas);
+	} catch (err) {
+		console.error('Error retrieving ideas:', err);
+		throw err;
+	}
+}
+
+// ============================================================================
+// USER PREFERENCE FUNCTIONS
+// ============================================================================
+
+/**
+ * Update user category preferences
+ * @param {string} email - User email
+ * @param {string} category - Category to add/remove
+ * @param {number} flag - 1 to add, 0 to remove
+ * @param {Function} callback - Callback function
+ */
+async function updateCategory(email, category, flag, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		// Initialize categoryPreference if it doesn't exist
+		if (!user.categoryPreference) {
+			user.categoryPreference = [];
+		}
+		
+		if (flag === 1) {
+			// Add category if not already present
+			if (user.categoryPreference.indexOf(category) === -1) {
+				user.categoryPreference.push(category);
+			}
 		} else {
-			new Idea({
-				author: {
-					'id': result._id,
-					'name': result.name,
-					'email': result.local.username
+			// Remove category
+			const index = user.categoryPreference.indexOf(category);
+			if (index > -1) {
+				user.categoryPreference.splice(index, 1);
+			}
+		}
+		
+		await user.save();
+		callback(user);
+	} catch (err) {
+		console.error('Error updating category:', err);
+		throw err;
+	}
+}
+
+// ============================================================================
+// RATING SYSTEM FUNCTIONS
+// ============================================================================
+
+/**
+ * Find user's rating for a specific idea
+ * @param {string} email - User email
+ * @param {string} id - Idea ID
+ * @param {Function} callback - Callback function
+ */
+async function findRating(email, id, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		// Check if user has rated this idea
+		const hasLiked = user.rating.likes.includes(id);
+		const hasDisliked = user.rating.dislikes.includes(id);
+		
+		if (hasLiked) {
+			callback(1); // Liked
+		} else if (hasDisliked) {
+			callback(-1); // Disliked
+		} else {
+			callback(0); // No rating
+		}
+	} catch (err) {
+		console.error('Error finding rating:', err);
+		throw err;
+	}
+}
+
+/**
+ * Add user rating to an idea
+ * @param {string} email - User email
+ * @param {number} flag - 1 for like, 0 for dislike
+ * @param {string} id - Idea ID
+ * @param {Function} callback - Callback function
+ */
+async function pushUserRating(email, flag, id, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		if (flag === 1) {
+			// Add to likes
+			if (user.rating.likes.indexOf(id) === -1) {
+				user.rating.likes.push(id);
+			}
+		} else {
+			// Add to dislikes
+			if (user.rating.dislikes.indexOf(id) === -1) {
+				user.rating.dislikes.push(id);
+			}
+		}
+		
+		await user.save();
+		callback(user);
+	} catch (err) {
+		console.error('Error pushing user rating:', err);
+		throw err;
+	}
+}
+
+/**
+ * Remove user rating from an idea
+ * @param {string} email - User email
+ * @param {number} flag - 1 for like, 0 for dislike
+ * @param {string} id - Idea ID
+ * @param {Function} callback - Callback function
+ */
+async function pullUserRating(email, flag, id, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		if (flag === 1) {
+			// Remove from likes
+			const index = user.rating.likes.indexOf(id);
+			if (index > -1) {
+				user.rating.likes.splice(index, 1);
+			}
+		} else {
+			// Remove from dislikes
+			const index = user.rating.dislikes.indexOf(id);
+			if (index > -1) {
+				user.rating.dislikes.splice(index, 1);
+			}
+		}
+		
+		await user.save();
+		callback(user);
+	} catch (err) {
+		console.error('Error pulling user rating:', err);
+		throw err;
+	}
+}
+
+/**
+ * Get all ratings for a user
+ * @param {string} email - User email
+ * @param {Function} callback - Callback function
+ */
+async function getRatings(email, callback) {
+	try {
+		const user = await User.findOne({ 'local.username': email });
+		
+		if (!user) {
+			throw new Error('User not found');
+		}
+		
+		callback({
+			likes: user.rating.likes,
+			dislikes: user.rating.dislikes
+		});
+	} catch (err) {
+		console.error('Error getting ratings:', err);
+		throw err;
+	}
+}
+
+// ============================================================================
+// ANALYTICS & REPORTING FUNCTIONS
+// ============================================================================
+
+/**
+ * Get category count statistics
+ * @param {Function} callback - Callback function
+ */
+async function categoryCount(callback) {
+	try {
+		// Aggregate ideas by category
+		const result = await Idea.aggregate([
+			{
+				$group: {
+					_id: '$category',
+					count: { $sum: 1 }
+				}
+			}
+		]);
+		
+		// Transform result to expected format
+		const categoryData = {
+			health: 0,
+			technology: 0,
+			education: 0,
+			finance: 0,
+			travel: 0
+		};
+		
+		result.forEach(item => {
+			const category = item._id.toLowerCase();
+			if (categoryData.hasOwnProperty(category)) {
+				categoryData[category] = item.count;
+			}
+		});
+		
+		callback(categoryData);
+	} catch (err) {
+		console.error('Error getting category count:', err);
+		throw err;
+	}
+}
+
+// ============================================================================
+// SAMPLE DATA GENERATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Create sample users with ideas for testing
+ * @param {Function} callback - Callback function
+ */
+async function createSampleUsers(callback) {
+	try {
+		// Sample user data
+		const sampleUsers = [
+			{
+				name: 'Sarah Johnson',
+				email: 'sarah.johnson@example.com',
+				password: '123123',
+				ideas: [
+					{
+						title: 'AI-Powered Mental Health Assistant',
+						description: 'An intelligent chatbot that provides mental health support and crisis intervention using natural language processing and machine learning.',
+						category: 'Health',
+						tags: ['ai', 'mental-health']
+					},
+					{
+						title: 'Smart Home Security System',
+						description: 'Advanced home security with facial recognition, motion detection, and mobile app integration for remote monitoring.',
+						category: 'Technology',
+						tags: ['security', 'iot']
+					}
+				]
+			},
+			{
+				name: 'Michael Chen',
+				email: 'michael.chen@example.com',
+				password: '123123',
+				ideas: [
+					{
+						title: 'Blockchain-Based Supply Chain Tracker',
+						description: 'Transparent supply chain tracking system using blockchain technology for better accountability and traceability.',
+						category: 'Technology',
+						tags: ['blockchain', 'supply-chain']
+					},
+					{
+						title: 'Personal Finance Budget Tracker',
+						description: 'Intelligent budget tracking app with spending analysis, financial goal setting, and investment recommendations.',
+						category: 'Finance',
+						tags: ['finance', 'budget']
+					}
+				]
+			},
+			{
+				name: 'Emily Rodriguez',
+				email: 'emily.rodriguez@example.com',
+				password: '123123',
+				ideas: [
+					{
+						title: 'Virtual Reality Education Platform',
+						description: 'Immersive educational experiences using VR technology for enhanced learning in various subjects.',
+						category: 'Education',
+						tags: ['vr', 'education']
+					},
+					{
+						title: 'Eco-Friendly Transportation Solution',
+						description: 'Sustainable transportation system reducing carbon footprint in urban areas with electric vehicles and smart routing.',
+						category: 'Travel',
+						tags: ['transportation', 'eco-friendly']
+					}
+				]
+			}
+		];
+
+		// Remove existing sample users and their ideas
+		for (const userData of sampleUsers) {
+			const existingUser = await User.findOne({ 'local.username': userData.email });
+			if (existingUser) {
+				// Delete user's ideas
+				await Idea.deleteMany({ 'author.id': existingUser._id });
+				// Delete user
+				await User.deleteOne({ 'local.username': userData.email });
+			}
+		}
+
+		// Create new sample users
+		const createdUsers = [];
+		for (const userData of sampleUsers) {
+			// Create new user
+			const newUser = new User({
+				name: userData.name,
+				local: {
+					username: userData.email,
+					password: '' // Will be set after user creation
 				},
-				title: title,
-				normalized: title.toLowerCase(),
-				description: description,
-				tags: tags,
-				category: category
-			}).save(function(err, result) {
-				if (err) {
-					console.log(err);
-					throw err;
-				} else {
-					callback(result);
+				rating: {
+					likes: [],
+					dislikes: []
 				}
 			});
-		}
-	});
-}
 
-function getUserIdeas(email, callback) {
-	User.findOne({
-		'local.username': email
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else {
-			Idea.find({
-				'author.id': result._id
-			}, function(err, result) {
-				if (err) {
-					console.log(err);
-					throw err;
-				} else {
-					callback(result);
-				}
-			});
-		}
-	});
-}
+			// Hash password
+			newUser.local.password = newUser.generateHash(userData.password);
+			await newUser.save();
+			createdUsers.push(newUser);
 
-function updateIdea(id, title, description, category, tags, likes, dislikes, callback){
-	Idea.findOneAndUpdate({
-		'_id':id
-	},
-	{
-		$set: {
-			'title': title,
-			'description': description,
-			'category': category,
-			'tags': tags
-		},
-		$inc: {
-			'rating.likes': likes,
-			'rating.dislikes': dislikes
-		}
-	},{
-		new: true
-	},function(err, result){
-		if(err){
-			console.log(err);
-			throw err;
-		}else{
-			callback(result);
-		}
-	});
-}
-
-function deleteIdea(id, callback) {
-	Idea.remove({
-		'_id': id
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else {
-			callback(result);
-		}
-	});
-}
-
-
-function getOtherIdeas(email, callback) {
-	User.findOne({
-		'local.username': email
-	}, function(err, result) {
-		if (err) {
-			console.log('Cannot get other user idea' + err);
-			throw err;
-		} else {
-			if (result.filter.length > 0) {
-				if (result.sortingPreference.sortBy == 'date') {
-					Idea.find({
-						'author.id': {$ne: result._id},
-						'category': {$in: result.categoryPreference},
-						'tags': {$in: result.filter}
-					}, null, {
-						sort: {
-							'date': result.sortingPreference.order
-						}
-					}, function(err, result) {
-						if (err) {
-							console.log(err);
-							throw err;
-						} else {
-							console.log(result);
-							callback(result);
-						}
-					});
-				} else if (result.sortingPreference.sortBy == 'normalized') {
-					Idea.find({
-						'author.id': {$ne: result._id},
-						'category': {$in: result.categoryPreference},
-						'tags': {$in: result.filter}
-					}, null, {
-						sort: {
-							'normalized': result.sortingPreference.order
-						}
-					}, function(err, result) {
-						if (err) {
-							console.log(err);
-							throw err;
-						} else {
-							callback(result);
-						}
-					});
-				}
-			} else {
-				if (result.sortingPreference.sortBy == 'date') {
-					Idea.find({
-						'author.id': {$ne: result._id},
-						'category': {$in: result.categoryPreference}
-					}, null, {
-						sort: {
-							'date': result.sortingPreference.order
-						}
-					}, function(err, result) {
-						if (err) {
-							console.log(err);
-							throw err;
-						} else {
-							callback(result);
-						}
-					});
-				} else if (result.sortingPreference.sortBy == 'normalized') {
-					Idea.find({
-						'author.id': {$ne: result._id},
-						'category': {$in: result.categoryPreference}
-					}, null, {
-						sort: {
-							'normalized': result.sortingPreference.order
-						}
-					}, function(err, result) {
-						if (err) {
-							console.log(err);
-							throw err;
-						} else {
-							callback(result);
-						}
-					});
-				}
+			// Create ideas for this user
+			for (const ideaData of userData.ideas) {
+				const newIdea = new Idea({
+					author: {
+						id: newUser._id,
+						name: newUser.name,
+						email: newUser.local.username
+					},
+					title: ideaData.title,
+					normalized: ideaData.title.toLowerCase(),
+					description: ideaData.description,
+					tags: ideaData.tags,
+					category: ideaData.category,
+					rating: {
+						likes: Math.floor(Math.random() * 20),
+						dislikes: Math.floor(Math.random() * 5)
+					}
+				});
+				await newIdea.save();
 			}
 		}
-	});
-}
 
-
-//----------------------------------     Filters     -----------------------------------------//
-
-function setFilter(email, clear, tags, callback) {
-	if (clear == 1) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$set: {
-				'filter': []
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
+		callback({
+			success: true,
+			message: `Successfully created ${createdUsers.length} sample users with ${sampleUsers.reduce((total, user) => total + user.ideas.length, 0)} ideas`
 		});
-	} else {
-		var correctTags = (tags.replace(/;+/g, ";")).replace(/'/g, "\\'");
-
-		if (correctTags.charAt(correctTags.length - 1) == ';') {
-			correctTags = correctTags.substring(0, correctTags.length - 1)
-		}
-
-		if (correctTags.charAt(0) == ';') {
-			correctTags = correctTags.substring(1, correctTags.length)
-		}
-
-		correctTags = correctTags.split(';');
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$set: {
-				'filter': correctTags
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
+	} catch (err) {
+		console.error('Error creating sample users:', err);
+		callback({
+			success: false,
+			message: 'Error creating sample users: ' + err.message
 		});
 	}
 }
 
-function retrieve(posInt, sdate, edate, callback) {
-	sdate = new Date(sdate);
-	edate = new Date(edate);
-	sdate.setHours(0);
-	sdate.setMinutes(0);
-	sdate.setSeconds(0);
-	edate.setHours(23);
-	edate.setMinutes(59);
-	edate.setSeconds(59);
-	Idea.find({
-		'date': {
-			$gte: sdate,
-			$lt: edate
+/**
+ * Clear all ideas for a specific user
+ * @param {string} username - User email
+ * @param {Function} callback - Callback function
+ */
+async function clearAllUserIdeas(username, callback) {
+	try {
+		// Find user
+		const user = await User.findOne({ 'local.username': username });
+		
+		if (!user) {
+			throw new Error('User not found');
 		}
-	}, null, {
-		sort: {
-			'rating.likes': -1
-		}
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else {
-			if (posInt > result.length) {
-				posInt = result.length;
-			}
-			callback(result.slice(0, posInt));
-		}
-	});
-}
-
-
-function updateCategory(email, category, flag, callback) {
-	if (flag == 1) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$push: {
-				'categoryPreference': category
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
-		});	
-	} else if (flag == 0) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$pull: {
-				'categoryPreference': category
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
+		
+		// Delete all user's ideas
+		const result = await Idea.deleteMany({ 'author.id': user._id });
+		
+		callback({
+			success: true,
+			message: `Successfully deleted ${result.deletedCount} ideas for user ${username}`
+		});
+	} catch (err) {
+		console.error('Error clearing user ideas:', err);
+		callback({
+			success: false,
+			message: 'Error clearing user ideas: ' + err.message
 		});
 	}
 }
 
-//-------------------------------- likes Disliks-------------------------------------//
-
-
-
-function findRating(email, id, callback) {
-	User.findOne({
-		'local.username': email,
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else if (result) {
-			if ((result.rating.likes).indexOf(id) > -1) {
-				callback(1);
-			} else if ((result.rating.dislikes).indexOf(id) > -1) {
-				callback(-1);
-			} else {
-				callback(0);
-			}
-		} else {
-			console.log("FATAL ERROR");
-			callback(404);
-		}
-	});
-}
-
-function pushUserRating(email, flag, id, callback) {
-	if (flag == 1) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$push: {
-				'rating.likes': id
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
-		});	
-	} else if (flag == 0) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$push: {
-				'rating.dislikes': id
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
-		});	
+/**
+ * Remove all ideas from the entire database
+ * @param {Function} callback - Callback function
+ */
+async function removeAllData(callback) {
+	try {
+		// Delete all ideas
+		const result = await Idea.deleteMany({});
+		
+		callback({
+			success: true,
+			message: `Successfully deleted ${result.deletedCount} ideas from the entire database`
+		});
+	} catch (err) {
+		console.error('Error removing all data:', err);
+		callback({
+			success: false,
+			message: 'Error removing all data: ' + err.message
+		});
 	}
 }
 
-function pullUserRating(email, flag, id, callback) {
-	if (flag == 1) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$pull: {
-				'rating.likes': id
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
-		});	
-	} else if (flag == 0) {
-		User.findOneAndUpdate({
-			'local.username': email
-		},
-		{
-			$pull: {
-				'rating.dislikes': id
-			}
-		},
-		{
-			new: true
-		}, function(err, result) {
-			if (err) {
-				console.log(err);
-				throw err;
-			} else {
-				callback(result);
-			}
-		});	
-	}
-}
-
-function getRatings(email, callback) {
-	User.findOne({
-		'local.username': email,
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else {
-			callback(result.rating);
-		}
-	});
-}
-
-function categoryCount(callback) {
-	var category_count = {
-		health: 0,
-		technology: 0,
-		education: 0,
-		finance: 0,
-		travel: 0
-	}
-	Idea.find({
-		'category': "Health"
-	}, function(err, result) {
-		if (err) {
-			console.log(err);
-			throw err;
-		} else {
-			category_count.health = result.length;
-			Idea.find({
-				'category': "Technology"
-			}, function(err, result) {
-				if (err) {
-					console.log(err);
-					throw err;
-				} else {
-					category_count.technology = result.length;
-					Idea.find({
-						'category': "Education"
-					}, function(err, result) {
-						if (err) {
-							console.log(err);
-							throw err;
-						} else {
-							category_count.education = result.length;
-							Idea.find({
-								'category': "Finance"
-							}, function(err, result) {
-								if (err) {
-									console.log(err);
-									throw err;
-								} else {
-									category_count.finance = result.length;
-									Idea.find({
-										'category': "Travel"
-									}, function(err, result) {
-										if (err) {
-											console.log(err);
-											throw err;
-										} else {
-											category_count.travel = result.length;
-											callback(category_count);
-										}
-									});
-								}
-							});
-						}
-					});
-				}
-			});
-		}
-	});
-}
-
-
-exports.findRating = findRating;
-exports.pushUserRating = pushUserRating;
-exports.pullUserRating = pullUserRating;
-exports.getRatings = getRatings;
-exports.categoryCount = categoryCount;
-
-exports.updateCategory = updateCategory;
-exports.retrieve = retrieve;
-exports.updateIdea = updateIdea;
-exports.createIdea = createIdea;
-exports.getUserIdeas = getUserIdeas;
-exports.deleteIdea = deleteIdea;
-exports.getOtherIdeas = getOtherIdeas;
-exports.setFilter = setFilter;
+// ============================================================================
+// MODULE EXPORTS
+// ============================================================================
+module.exports = {
+	// Idea management
+	createIdea,
+	getUserIdeas,
+	updateIdea,
+	deleteIdea,
+	getOtherIdeas,
+	
+	// Filtering & search
+	setFilter,
+	retrieve,
+	
+	// User preferences
+	updateCategory,
+	
+	// Rating system
+	findRating,
+	pushUserRating,
+	pullUserRating,
+	getRatings,
+	
+	// Analytics
+	categoryCount,
+	
+	// Sample data
+	createSampleUsers,
+	clearAllUserIdeas,
+	removeAllData
+};

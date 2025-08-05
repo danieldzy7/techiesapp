@@ -73,45 +73,49 @@ module.exports = function(router, passport) {
 		failureFlash: true
 	}));
 
-	router.get('/unlink/facebook', function(req, res) {
-		var user = req.user;
-
-		user.facebook.token = null;
-
-		user.save(function(err) {
-			if (err)
-				throw err;
+	router.get('/unlink/facebook', async function(req, res) {
+		try {
+			var user = req.user;
+			user.facebook.token = null;
+			await user.save();
 			res.redirect('/profile');
-		})
+		} catch (err) {
+			console.error(err);
+			res.redirect('/profile');
+		}
 	});
 
-	router.get('/unlink/local', function(req, res) {
-		var user = req.user;
-
-		user.local.username = null;
-		user.local.password = null;
-
-		user.save(function(err) {
-			if (err)
-				throw err;
+	router.get('/unlink/local', async function(req, res) {
+		try {
+			var user = req.user;
+			user.local.username = null;
+			user.local.password = null;
+			await user.save();
 			res.redirect('/profile');
-		});
-
+		} catch (err) {
+			console.error(err);
+			res.redirect('/profile');
+		}
 	});
 
-	router.get('/unlink/google', function(req, res) {
-		var user = req.user;
-		user.google.token = null;
-
-		user.save(function(err) {
-			if (err)
-				throw err;
+	router.get('/unlink/google', async function(req, res) {
+		try {
+			var user = req.user;
+			user.google.token = null;
+			await user.save();
 			res.redirect('/profile');
-		});
+		} catch (err) {
+			console.error(err);
+			res.redirect('/profile');
+		}
 	});
 
 	router.get('/logout', function(req, res) {
-		req.logout();
-		res.redirect('/');
+		req.logout(function(err) {
+			if (err) {
+				return next(err);
+			}
+			res.redirect('/');
+		});
 	})
 };

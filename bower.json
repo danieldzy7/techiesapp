@@ -2,7 +2,7 @@
   "name": "Techies",
   "version": "0.0.0",
   "authors": [
-    "Ryan <learnonemore7@gmail.com>"
+    "Daniel D <learnonemore7@gmail.com>"
   ],
   "description": "",
   "main": "",
@@ -17,12 +17,12 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "~1.4.8",
-    "bootstrap": "~3.3.6",
-    "angular-route": "~1.4.8",
-    "angular-resource": "~1.4.8",
+    "angular": "~1.8.3",
+    "bootstrap": "~3.4.1",
+    "angular-route": "~1.8.3",
+    "angular-resource": "~1.8.3",
     "angular-socket-io": "~0.7.0",
-    "font-awesome": "~4.5.0",
-    "amcharts3": "~3.18.6"
+    "font-awesome": "~4.7.0",
+    "amcharts3": "~3.21.15"
   }
 }
