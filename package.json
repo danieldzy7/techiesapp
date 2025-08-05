@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install-deps": "npm install && bower install",
-    "setup": "npm run install-deps && echo \"Setup complete! Run 'npm start' to start the server.\""
+    "setup": "npm run install-deps && echo \"Setup complete! Run 'npm start' to start the server.\"",
+    "postinstall": "bower install"
   },
   "keywords": [
     "ideas",
@@ -25,12 +26,12 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/techies-app.git"
+    "url": "https://github.com/danieldzy7/techiesapp.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/techies-app/issues"
+    "url": "https://github.com/danieldzy7/techiesapp/issues"
   },
-  "homepage": "https://github.com/yourusername/techies-app#readme",
+  "homepage": "https://github.com/danieldzy7/techiesapp#readme",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
